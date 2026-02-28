@@ -7,6 +7,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Button Name="FetchButton" Content="取得" HorizontalAlignment="Left" Margin="189,9,0,0" VerticalAlignment="Top" Click="FetchButton_Click"/>
+        <TextBox Name="SymbolTextBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="165"/>
+        <DataGrid Name="PricesDataGrid" Margin="10,46,10,10"/>
 
     </Grid>
 </Window>
