@@ -6,10 +6,19 @@
         xmlns:local="clr-namespace:StockAnalyzer"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Button Name="FetchButton" Content="取得" HorizontalAlignment="Left" Margin="189,9,0,0" VerticalAlignment="Top" Click="FetchButton_Click"/>
-        <TextBox Name="SymbolTextBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="165"/>
-        <DataGrid Name="PricesDataGrid" Margin="10,46,10,10"/>
-
-    </Grid>
+    <DockPanel Margin="12">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+            <Label Content="銘柄：" Width="45"/>
+            <TextBox x:Name="SymbolTextBox" TextWrapping="Wrap" Width="165" Height="20"/>
+            <Button x:Name="FetchButton" Content="取得" Click="FetchButton_Click" Width="54" Margin="10,0,0,0"/>
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <ProgressBar x:Name="LoadingBar"
+                 Width="120"
+                 Height="14"
+                 Margin="12,0,0,0"
+                 IsIndeterminate="True"
+                 Visibility="Collapsed"/>
+        </StackPanel>
+        <DataGrid Name="PricesDataGrid" Margin="10,10,10,10"/>
+    </DockPanel>
 </Window>

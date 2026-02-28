@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Input;
 
 namespace StockAnalyzer
 {
@@ -26,10 +27,10 @@ namespace StockAnalyzer
                 return;
             }
 
-            // v0.1は期間固定
+            SetFetchingState(true, "取得中...");
+
             var period = "1y";
 
-            // tools/fetcher を基準に実行
             var fetcherDir = FindFetcherDir();
             var scriptPath = Path.Combine(fetcherDir, "fetch_price_data.py");
 
@@ -66,9 +67,11 @@ namespace StockAnalyzer
                 }) ?? [];
 
                 PricesDataGrid.ItemsSource = rows;
+                SetFetchingState(false, $"取得完了: {rows.Count}件");
             }
             catch (Exception ex)
             {
+                SetFetchingState(false, "取得失敗");
                 MessageBox.Show($"例外: {ex.Message}");
             }
         }
@@ -89,6 +92,14 @@ namespace StockAnalyzer
             }
 
             throw new DirectoryNotFoundException("tools/fetcher/fetch_price_data.py が見つかりません。");
+        }
+
+        private void SetFetchingState(bool isFetching, string? status = null)
+        {
+            FetchButton.IsEnabled = !isFetching;
+            LoadingBar.Visibility = isFetching ? Visibility.Visible : Visibility.Collapsed;
+            StatusText.Text = status ?? (isFetching ? "取得中..." : "完了");
+            Mouse.OverrideCursor = isFetching ? Cursors.Wait : null;
         }
     }
 }
