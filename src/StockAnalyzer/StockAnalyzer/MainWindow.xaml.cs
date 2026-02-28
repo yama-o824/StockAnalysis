@@ -49,18 +49,22 @@ namespace StockAnalyzer
                 StandardErrorEncoding = Encoding.UTF8,
             };
 
+            string? stderr = null;
+            int? exitCode = null;
+
             try
             {
                 using var p = Process.Start(psi) ?? throw new Exception("Process start failed.");
 
                 var stdout = await p.StandardOutput.ReadToEndAsync();
-                var stderr = await p.StandardError.ReadToEndAsync();
+                stderr = await p.StandardError.ReadToEndAsync();
                 await p.WaitForExitAsync();
+                exitCode = p.ExitCode;
 
                 if (p.ExitCode != 0)
                 {
                     SetFetchingState(false, "取得失敗");
-                    ShowFriendlyError(new Exception("Python process failed."), stderr, p.ExitCode);
+                    ShowFriendlyError(new Exception("Python process failed."), stderr, exitCode);
                     return;
                 }
 
@@ -75,7 +79,7 @@ namespace StockAnalyzer
             catch (Exception ex)
             {
                 SetFetchingState(false, "取得失敗");
-                ShowFriendlyError(ex);
+                ShowFriendlyError(ex, stderr, exitCode);
             }
         }
 
