@@ -57,7 +57,8 @@ namespace StockAnalyzer
 
                 if (p.ExitCode != 0)
                 {
-                    MessageBox.Show($"取得に失敗しました:\n{stderr}");
+                    SetFetchingState(false, "取得失敗");
+                    ShowFriendlyError(new Exception("Python process failed."), stderr, p.ExitCode);
                     return;
                 }
 
@@ -72,7 +73,7 @@ namespace StockAnalyzer
             catch (Exception ex)
             {
                 SetFetchingState(false, "取得失敗");
-                MessageBox.Show($"例外: {ex.Message}");
+                ShowFriendlyError(ex);
             }
         }
 
@@ -100,6 +101,30 @@ namespace StockAnalyzer
             LoadingBar.Visibility = isFetching ? Visibility.Visible : Visibility.Collapsed;
             StatusText.Text = status ?? (isFetching ? "取得中..." : "完了");
             Mouse.OverrideCursor = isFetching ? Cursors.Wait : null;
+        }
+
+        private void ShowFriendlyError(Exception ex, string? stderr = null, int? exitCode = null)
+        {
+            var summary = "取得に失敗しました。";
+
+            if (!string.IsNullOrWhiteSpace(stderr))
+            {
+                if (stderr.Contains("No data returned", StringComparison.OrdinalIgnoreCase))
+                    summary = "データが取得できませんでした。銘柄コードが正しいか確認してください。";
+                else if (stderr.Contains("Too Many Requests", StringComparison.OrdinalIgnoreCase) ||
+                         stderr.Contains("Rate limit", StringComparison.OrdinalIgnoreCase) ||
+                         stderr.Contains("429"))
+                    summary = "アクセスが集中しています。時間を置いて再実行してください。";
+                else if (stderr.Contains("ModuleNotFoundError", StringComparison.OrdinalIgnoreCase))
+                    summary = "Python側のライブラリが不足しています。requirements.txt をインストールしてください。";
+            }
+
+            var details = new StringBuilder();
+            if (exitCode != null) details.AppendLine($"ExitCode: {exitCode}");
+            if (!string.IsNullOrWhiteSpace(stderr)) details.AppendLine(stderr.Trim());
+            details.AppendLine(ex.Message);
+
+            MessageBox.Show($"{summary}\n\n--- 詳細 ---\n{details}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }
