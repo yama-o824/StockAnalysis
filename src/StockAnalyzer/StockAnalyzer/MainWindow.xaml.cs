@@ -33,10 +33,12 @@ namespace StockAnalyzer
 
             var fetcherDir = FindFetcherDir();
             var scriptPath = Path.Combine(fetcherDir, "fetch_price_data.py");
+            var venvPython = Path.Combine(fetcherDir, ".venv", "Scripts", "python.exe");
+            var pythonExe = File.Exists(venvPython) ? venvPython : "python";
 
             var psi = new ProcessStartInfo
             {
-                FileName = "python",
+                FileName = pythonExe,
                 Arguments = $"\"{scriptPath}\" {symbol} {period}",
                 WorkingDirectory = fetcherDir,
                 RedirectStandardOutput = true,
