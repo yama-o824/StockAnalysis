@@ -10,7 +10,7 @@ def is_cache_valid(path: str) -> bool:
     if not os.path.exists(path):
         return False
     mtime = datetime.fromtimestamp(os.path.getmtime(path))
-    return mtime.date() == datetime.now().date()  # “–“ú’†‚ÍÄ—˜—p
+    return mtime.date() == datetime.now().date()
 
 def main():
     if len(sys.argv) < 3:
@@ -40,7 +40,6 @@ def main():
 
         rows = []
         for _, r in df.iterrows():
-            # yfinance‚ÍDatetimeŒ^‚ª—ˆ‚é‚Ì‚ÅISO•¶š—ñ‚Ö
             d = r["Date"]
             date_str = d.strftime("%Y-%m-%d") if hasattr(d, "strftime") else str(d)[:10]
             rows.append({

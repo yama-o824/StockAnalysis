@@ -1,5 +1,6 @@
 ﻿using StockAnalyzer.Models;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -29,8 +30,8 @@ namespace StockAnalyzer
             var period = "1y";
 
             // tools/fetcher を基準に実行
-            var fetcherDir = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, @"..\..\..\..\..\tools\fetcher"));
-            var scriptPath = System.IO.Path.Combine(fetcherDir, "fetch_price_data.py");
+            var fetcherDir = FindFetcherDir();
+            var scriptPath = Path.Combine(fetcherDir, "fetch_price_data.py");
 
             var psi = new ProcessStartInfo
             {
@@ -70,6 +71,24 @@ namespace StockAnalyzer
             {
                 MessageBox.Show($"例外: {ex.Message}");
             }
+        }
+
+        static string FindFetcherDir()
+        {
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+
+            while (dir != null)
+            {
+                var candidate = Path.Combine(dir.FullName, "tools", "fetcher", "fetch_price_data.py");
+                if (File.Exists(candidate))
+                {
+                    return Path.GetDirectoryName(candidate)!;
+                }
+
+                dir = dir.Parent;
+            }
+
+            throw new DirectoryNotFoundException("tools/fetcher/fetch_price_data.py が見つかりません。");
         }
     }
 }
