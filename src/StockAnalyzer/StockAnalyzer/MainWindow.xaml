@@ -19,6 +19,6 @@
                  IsIndeterminate="True"
                  Visibility="Collapsed"/>
         </StackPanel>
-        <DataGrid Name="PricesDataGrid" Margin="10,10,10,10"/>
+        <DataGrid Name="PricesDataGrid" Margin="10,10,10,10" AutoGeneratingColumn="PricesDataGrid_AutoGeneratingColumn" />
     </DockPanel>
 </Window>

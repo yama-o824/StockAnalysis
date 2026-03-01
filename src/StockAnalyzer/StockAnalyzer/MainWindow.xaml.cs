@@ -1,9 +1,12 @@
-﻿using StockAnalyzer.Models;
+﻿using StockAnalyzer.Analyzer;
+using StockAnalyzer.Models;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace StockAnalyzer
@@ -16,6 +19,25 @@ namespace StockAnalyzer
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void PricesDataGrid_AutoGeneratingColumn(object? sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+            if (e.Column is not DataGridTextColumn tc || tc.Binding is not Binding b) return;
+
+            var property = typeof(PriceRow).GetProperty(e.PropertyName);
+            if (property == null) return;
+
+            var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+
+            if (type == typeof(long) || type == typeof(int))
+            {
+                b.StringFormat = "N0";
+            }
+            else if (type == typeof(double) || type == typeof(float))
+            {
+                b.StringFormat = "N2";
+            }
         }
 
         private async void FetchButton_Click(object sender, RoutedEventArgs e)
@@ -72,6 +94,14 @@ namespace StockAnalyzer
                 {
                     PropertyNameCaseInsensitive = true
                 }) ?? [];
+                rows = [.. rows.OrderBy(r => r.Date)];
+
+                var closes = rows.Select(r => r.Close).ToList();
+                var ma75 = MovingAverageAnalyzer.CalculateSma(closes, 75);
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    rows[i].MA75 = ma75[i];
+                }
 
                 PricesDataGrid.ItemsSource = rows;
                 SetFetchingState(false, $"取得完了: {rows.Count}件");
