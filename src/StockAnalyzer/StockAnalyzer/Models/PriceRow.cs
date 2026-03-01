@@ -8,4 +8,5 @@ public sealed class PriceRow
     public double Low { get; set; }
     public double Close { get; set; }
     public long Volume { get; set; }
+    public double? MA75 { get; set; }
 }
