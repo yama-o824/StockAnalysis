@@ -102,8 +102,10 @@ namespace StockAnalyzer
                 {
                     rows[i].MA75 = ma75[i];
                 }
+                var signals = CrossAnalyzer.DetectCrossSignals(rows);
 
                 PricesDataGrid.ItemsSource = rows;
+                SignalsDataGrid.ItemsSource = signals;
                 SetFetchingState(false, $"取得完了: {rows.Count}件");
             }
             catch (Exception ex)
