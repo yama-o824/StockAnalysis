@@ -19,12 +19,25 @@
                  IsIndeterminate="True"
                  Visibility="Collapsed"/>
         </StackPanel>
-        <DataGrid Name="PricesDataGrid" 
-                  Margin="10,10,10,10" 
-                  AutoGeneratingColumn="PricesDataGrid_AutoGeneratingColumn" 
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  CanUserReorderColumns="False"/>
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="取得データ一覧"
+                           Margin="0,16,0,4"
+                           FontWeight="Bold"/>
+                <DataGrid Name="PricesDataGrid" 
+                          Margin="0,10,0,0" 
+                          AutoGeneratingColumn="PricesDataGrid_AutoGeneratingColumn"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserReorderColumns="False"/>
+                <TextBlock Text="シグナル一覧" Margin="0,16,0,4" FontWeight="Bold"/>
+                <DataGrid x:Name="SignalsDataGrid" 
+                          IsReadOnly="True"
+                          AutoGenerateColumns="True" 
+                          CanUserAddRows="False" 
+                          CanUserDeleteRows="False"/>
+            </StackPanel>
+        </ScrollViewer>
     </DockPanel>
 </Window>
