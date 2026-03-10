@@ -21,7 +21,7 @@ namespace StockAnalyzer
             InitializeComponent();
         }
 
-        private void PricesDataGrid_AutoGeneratingColumn(object? sender, DataGridAutoGeneratingColumnEventArgs e)
+        private void DataGrid_AutoGeneratingColumn(object? sender, DataGridAutoGeneratingColumnEventArgs e)
         {
             if (e.Column is not DataGridTextColumn tc || tc.Binding is not Binding b) return;
 
