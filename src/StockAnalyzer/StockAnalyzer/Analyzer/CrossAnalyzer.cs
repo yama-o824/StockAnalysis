@@ -43,7 +43,7 @@ public static class CrossAnalyzer
         return new SignalEntry
         {
             Date = current.Date,
-            Type = SignalType.Sell,
+            Type = type,
             Price = current.Close,
             Ma = current.MA75 ?? 0
         };
