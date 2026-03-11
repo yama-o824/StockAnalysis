@@ -19,33 +19,44 @@ public static class CrossAnalyzer
 
             var prevClose = prev.Close;
             var prevMa = prev.MA75.Value;
+            var currentClose = current.Close;
+            var currentMa = current.MA75.Value;
 
-            var close = current.Close;
-            var ma = current.MA75.Value;
+            var prevDiff = prevClose - prevMa;
+            var currentDiff = currentClose - currentMa;
 
             // BUY: ゴールデンクロス
-            if (prevClose < prevMa && close >= ma)
+            if (prevDiff < 0 && currentDiff > 0)
             {
-                signals.Add(CreateSignalEntry(current, SignalType.Buy));
+                signals.Add(new SignalEntry
+                {
+                    Date = current.Date,
+                    Type = SignalType.Buy,
+                    PrevPrice = prevClose,
+                    PrevMa = prevMa,
+                    PrevDiff = prevDiff,
+                    Price = currentClose,
+                    Ma = currentMa,
+                    CurrentDiff = currentDiff
+                });
             }
             // SELL: デッドクロス
-            else if (prevClose > prevMa && close <= ma)
+            else if (prevDiff > 0 && currentDiff < 0)
             {
-                signals.Add(CreateSignalEntry(current, SignalType.Sell));
+                signals.Add(new SignalEntry
+                {
+                    Date = current.Date,
+                    Type = SignalType.Sell,
+                    PrevPrice = prevClose,
+                    PrevMa = prevMa,
+                    PrevDiff = prevDiff,
+                    Price = currentClose,
+                    Ma = currentMa,
+                    CurrentDiff = currentDiff
+                });
             }
         }
 
         return signals;
-    }
-
-    private static SignalEntry CreateSignalEntry(PriceRow current, SignalType type)
-    {
-        return new SignalEntry
-        {
-            Date = current.Date,
-            Type = type,
-            Price = current.Close,
-            Ma = current.MA75 ?? 0
-        };
     }
 }
