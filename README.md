@@ -1,16 +1,18 @@
-﻿# StockAnalysis (v0.3)
+﻿# StockAnalysis (v0.4)
 
 WPFアプリからPython（yfinance）を起動し、株価データ（OHLCV）を取得し、
-75日単純移動平均（MA75）とクロスシグナルを表示するアプリケーションです。
+75日単純移動平均（MA75）およびクロスシグナルを分析・表示するアプリケーションです。
 
 ---
 
-## v0.3 変更点
+## v0.4 変更点
 
-- ゴールデンクロス / デッドクロス検出を追加
-- シグナル一覧を DataGrid で表示
-- `SignalType` enum により Buy / Sell を型安全に管理
-- シグナル一覧の価格・MA表示を小数2桁に統一
+- クロス判定の根拠情報を表示
+  - 前日価格 / MA
+  - 当日価格 / MA
+  - 差分（PrevDiff / CurrentDiff）
+- Buy / Sell シグナルの検証が可能に
+- SignalsDataGrid に数値フォーマット（N2）を適用
 
 ---
 
@@ -36,26 +38,26 @@ WPFアプリからPython（yfinance）を起動し、株価データ（OHLCV）�
 
 ### 1. リポジトリをクローン
 
-```bash
+```
 git clone https://github.com/yama-o824/StockAnalysis.git
 cd StockAnalysis
 ```
 
 ### 2. Python（fetcher）のセットアップ
 
-```bash
+```
 cd tools/fetcher
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-> python が見つからない場合は、PythonをインストールしてPATHを通してください。
+※ Python が見つからない場合は PATH を通してください
 
 ### 3. WPFアプリを起動
 
-Visual Studioで以下のプロジェクトを開いて実行してください。
+Visual Studio で以下を開いて実行：
 
-```text
+```
 src/StockAnalyzer
 ```
 
@@ -65,26 +67,40 @@ src/StockAnalyzer
 
 1. 銘柄コードを入力（例：7203.T）
 2. 「取得」ボタンを押す
-3. OHLCVおよびMA75が表示されます
-4. 条件に一致したクロスシグナルが下部の一覧に表示されます
-
-- 期間は v0.3 では固定（例：1y）
-- キャッシュは `tools/fetcher/cache` に保存されます（当日中は再取得しません）
+3. OHLCV + MA75 が表示される
+4. シグナル一覧でクロス判定を確認
 
 ---
 
-## クロス判定ルール
+## シグナルの見方
 
-- **Buy**: 前日まで終値がMA75を下回り、当日終値がMA75を上回ったとき
-- **Sell**: 前日まで終値がMA75を上回り、当日終値がMA75を下回ったとき
+| 列名 | 内容 |
+|------|------|
+| PrevPrice | 前日の終値 |
+| PrevMa | 前日のMA75 |
+| PrevDiff | 前日の差分（Price - MA） |
+| Price | 当日の終値 |
+| Ma | 当日のMA75 |
+| CurrentDiff | 当日の差分 |
 
-※ MA75 が `null` の期間はシグナル判定を行いません。
+### 判定ロジック
+
+- **Buy**：PrevDiff < 0 → CurrentDiff > 0
+- **Sell**：PrevDiff > 0 → CurrentDiff < 0
 
 ---
 
-## 今後の予定（v0.4 以降）
+## 今後の予定（v0.5 以降）
 
-- チャート表示（折れ線）
-- シグナルの根拠表示強化
-- 指標期間の可変化
-- Python取得部のexe化
+- DataGrid 表示改善（列順・見やすさ）
+- チャート表示（ローソク足 + MA）
+- 複数移動平均（MA25 / MA75 / MA200）
+- シグナルフィルタ（直近のみなど）
+
+---
+
+## 補足
+
+- データは `yfinance` を利用
+- キャッシュは `tools/fetcher/cache` に保存
+
