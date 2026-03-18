@@ -2,6 +2,7 @@
 using StockAnalyzer.Models;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -25,7 +26,13 @@ namespace StockAnalyzer
         {
             if (e.Column is not DataGridTextColumn tc || tc.Binding is not Binding b) return;
 
-            var property = typeof(PriceRow).GetProperty(e.PropertyName);
+            var models = new[] { typeof(PriceRow), typeof(SignalEntry) };
+            PropertyInfo? property = null;
+            foreach (var model in models)
+            {
+                property = model.GetProperty(e.PropertyName);
+                if (property != null) break;
+            }
             if (property == null) return;
 
             var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
