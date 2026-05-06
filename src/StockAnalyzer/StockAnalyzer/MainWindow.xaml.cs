@@ -1,5 +1,5 @@
 ﻿using StockAnalyzer.Models;
-using StockAnalyzer.Models.Market;
+using StockAnalyzer.Mappers;
 using StockAnalyzer.Presentation;
 using StockAnalyzer.Services;
 using System.Diagnostics;
@@ -107,7 +107,7 @@ namespace StockAnalyzer
                 }) ?? [];
                 rows = [.. rows.OrderBy(r => r.Date)];
 
-                var priceBars = rows.Select(ToPriceBar).ToList();
+                var priceBars = rows.Select(PriceBarMapper.From).ToList();
                 var analysisResult = _stockAnalysisService.Analyze(priceBars);
 
                 PricesDataGrid.ItemsSource = analysisResult.Bars
@@ -142,21 +142,6 @@ namespace StockAnalyzer
             }
 
             throw new DirectoryNotFoundException("tools/fetcher/fetch_price_data.py が見つかりません。");
-        }
-
-        private static PriceBar ToPriceBar(PriceRow row)
-        {
-            ArgumentNullException.ThrowIfNull(row);
-
-            return new PriceBar
-            {
-                Date = DateOnly.Parse(row.Date),
-                Open = row.Open,
-                High = row.High,
-                Low = row.Low,
-                Close = row.Close,
-                Volume = row.Volume
-            };
         }
 
         private void SetFetchingState(bool isFetching, string? status = null)
