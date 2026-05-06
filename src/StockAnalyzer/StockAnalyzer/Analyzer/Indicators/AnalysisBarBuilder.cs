@@ -1,3 +1,4 @@
+using StockAnalyzer.Analyzer.Candles;
 using StockAnalyzer.Models.Analysis;
 using StockAnalyzer.Models.Market;
 
@@ -30,7 +31,7 @@ public sealed class AnalysisBarBuilder
                 Ma75 = ma75[i],
                 Avg20Volume = avgVolume,
                 VolumeRatio = volumeRatio,
-                Candle = new CandleMetrics()
+                Candle = CandleAnalyzer.Analyze(priceBars[i])
             });
         }
 

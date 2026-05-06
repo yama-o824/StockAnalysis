@@ -1,3 +1,4 @@
+using StockAnalyzer.Models;
 using StockAnalyzer.Models.Analysis;
 
 namespace StockAnalyzer.Analyzer.Signals;
