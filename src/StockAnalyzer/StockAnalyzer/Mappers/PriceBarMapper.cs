@@ -1,5 +1,6 @@
 using StockAnalyzer.Models;
 using StockAnalyzer.Models.Market;
+using System.Globalization;
 
 namespace StockAnalyzer.Mappers;
 
@@ -11,7 +12,7 @@ public static class PriceBarMapper
 
         return new PriceBar
         {
-            Date = DateOnly.Parse(row.Date),
+            Date = DateOnly.ParseExact(row.Date, "yyyy-MM-dd", CultureInfo.InvariantCulture),
             Open = row.Open,
             High = row.High,
             Low = row.Low,
