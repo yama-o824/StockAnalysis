@@ -3,7 +3,7 @@ using StockAnalyzer.Models.Analysis;
 
 namespace StockAnalyzer.Analyzer.Signals;
 
-public sealed class SignalStrengthEvaluator
+public sealed class Ma75DeviationRateEvaluator
 {
     public double? Evaluate(SignalCandidate candidate)
     {

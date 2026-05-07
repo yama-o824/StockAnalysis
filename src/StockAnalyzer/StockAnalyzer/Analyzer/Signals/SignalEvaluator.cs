@@ -5,7 +5,7 @@ namespace StockAnalyzer.Analyzer.Signals;
 
 public sealed class SignalEvaluator
 {
-    private readonly SignalStrengthEvaluator _signalStrengthEvaluator = new();
+    private readonly Ma75DeviationRateEvaluator _ma75DeviationRateEvaluator = new();
     private readonly VolumeSupportEvaluator _volumeSupportEvaluator = new();
     private readonly PullbackEvaluator _pullbackEvaluator = new();
 
@@ -13,7 +13,7 @@ public sealed class SignalEvaluator
     {
         ArgumentNullException.ThrowIfNull(candidate);
 
-        var signalStrength = _signalStrengthEvaluator.Evaluate(candidate);
+        var ma75DeviationRate = _ma75DeviationRateEvaluator.Evaluate(candidate);
         var hasVolumeSupport = _volumeSupportEvaluator.HasSupport(candidate);
         var hasStrongBullishCandle = HasStrongBullishCandle(candidate);
         var isPullbackBounce = _pullbackEvaluator.IsPullbackBounce(candidate);
@@ -23,12 +23,12 @@ public sealed class SignalEvaluator
             Candidate = candidate,
             Evaluation = new SignalEvaluation
             {
-                SignalStrength = signalStrength,
+                SignalStrength = ma75DeviationRate,
                 HasVolumeSupport = hasVolumeSupport,
                 HasStrongBullishCandle = hasStrongBullishCandle,
                 IsPullbackBounce = isPullbackBounce,
                 Reasons = BuildReasons(
-                    signalStrength,
+                    ma75DeviationRate,
                     hasVolumeSupport,
                     hasStrongBullishCandle,
                     isPullbackBounce,
@@ -52,7 +52,7 @@ public sealed class SignalEvaluator
     }
 
     private static IReadOnlyList<string> BuildReasons(
-        double? signalStrength,
+        double? ma75DeviationRate,
         bool hasVolumeSupport,
         bool hasStrongBullishCandle,
         bool isPullbackBounce,
@@ -60,9 +60,9 @@ public sealed class SignalEvaluator
     {
         var reasons = new List<string>();
 
-        if (signalStrength is not null)
+        if (ma75DeviationRate is not null)
         {
-            reasons.Add($"SignalStrength={signalStrength.Value:P2}");
+            reasons.Add($"Ma75DeviationRate={ma75DeviationRate.Value:P2}");
         }
 
         if (candidate.Current.VolumeRatio is not null)
