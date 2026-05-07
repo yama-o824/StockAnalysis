@@ -1,18 +1,25 @@
-﻿# StockAnalysis (v0.4)
+﻿# StockAnalysis (v0.5)
 
 WPFアプリからPython（yfinance）を起動し、株価データ（OHLCV）を取得し、
-75日単純移動平均（MA75）およびクロスシグナルを分析・表示するアプリケーションです。
+75日単純移動平均（MA75）を軸にクロスシグナルの強さまで分析・表示するアプリケーションです。
 
 ---
 
-## v0.4 変更点
+## v0.5 変更点
 
-- クロス判定の根拠情報を表示
-  - 前日価格 / MA
-  - 当日価格 / MA
-  - 差分（PrevDiff / CurrentDiff）
-- Buy / Sell シグナルの検証が可能に
-- SignalsDataGrid に数値フォーマット（N2）を適用
+- 分析用モデルを導入
+  - `PriceBar`
+  - `AnalysisBar`
+  - `SignalCandidate`
+  - `SignalResult`
+- 分析フローを `StockAnalysisService` に集約
+- Phase1 向けの分析器を追加
+  - 出来高20日平均
+  - `VolumeRatio`
+  - MA75乖離率
+  - 押し目判定
+  - ローソク足特徴量
+- シグナル一覧に強さ判定の根拠を表示
 
 ---
 
@@ -20,8 +27,13 @@ WPFアプリからPython（yfinance）を起動し、株価データ（OHLCV）�
 
 - WPF → Python プロセス起動
 - stdout の JSON を受け取り → DataGrid 表示
-- C#側で MA75 を計算
-- C#側でクロスシグナルを検出
+- C#側で `PriceBar` へ変換
+- `StockAnalysisService` で分析を実行
+  - MA75
+  - 出来高20日平均
+  - クロス判定
+  - 押し目判定
+  - ローソク足分析
 - Python側で当日キャッシュ（同一銘柄・同一期間は再取得しない）
 
 ---
@@ -67,8 +79,8 @@ src/StockAnalyzer
 
 1. 銘柄コードを入力（例：7203.T）
 2. 「取得」ボタンを押す
-3. OHLCV + MA75 が表示される
-4. シグナル一覧でクロス判定を確認
+3. OHLCV + MA75 + 出来高系指標が表示される
+4. シグナル一覧でクロス判定と強度根拠を確認
 
 ---
 
@@ -82,6 +94,13 @@ src/StockAnalyzer
 | Price | 当日の終値 |
 | Ma | 当日のMA75 |
 | CurrentDiff | 当日の差分 |
+| Avg20Volume | 出来高20日平均 |
+| VolumeRatio | 当日出来高 / 出来高20日平均 |
+| SignalStrength | MA75からの乖離率 |
+| HasVolumeSupport | 出来高を伴う上抜けか |
+| IsPullbackBounce | 押し目反発か |
+| HasStrongBullishCandle | 強い陽線か |
+| Reasons | 判定根拠の要約 |
 
 ### 判定ロジック
 
@@ -92,10 +111,10 @@ src/StockAnalyzer
 
 ## 今後の予定（v0.5 以降）
 
-- DataGrid 表示改善（列順・見やすさ）
+- バックテスト機能
+- スコアリング機能
 - チャート表示（ローソク足 + MA）
-- 複数移動平均（MA25 / MA75 / MA200）
-- シグナルフィルタ（直近のみなど）
+- シグナル通知
 
 ---
 
@@ -103,4 +122,3 @@ src/StockAnalyzer
 
 - データは `yfinance` を利用
 - キャッシュは `tools/fetcher/cache` に保存
-
