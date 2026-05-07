@@ -32,6 +32,7 @@
                           CanUserDeleteRows="False"
                           CanUserReorderColumns="False"/>
                 <TextBlock Text="シグナル一覧" Margin="0,16,0,4" FontWeight="Bold"/>
+                <TextBlock x:Name="BacktestSummaryText" Margin="0,0,0,4"/>
                 <DataGrid x:Name="SignalsDataGrid" 
                           AutoGeneratingColumn="DataGrid_AutoGeneratingColumn"
                           IsReadOnly="True"

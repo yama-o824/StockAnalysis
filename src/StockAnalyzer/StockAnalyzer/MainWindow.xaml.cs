@@ -2,6 +2,8 @@
 using StockAnalyzer.Mappers;
 using StockAnalyzer.Presentation;
 using StockAnalyzer.Services;
+using StockAnalyzer.Services.Backtest;
+using StockAnalyzer.Models.Backtest;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -20,6 +22,7 @@ namespace StockAnalyzer
     public partial class MainWindow : Window
     {
         private readonly StockAnalysisService _stockAnalysisService = new();
+        private readonly BacktestService _backtestService = new();
 
         public MainWindow()
         {
@@ -117,6 +120,10 @@ namespace StockAnalyzer
                 SignalsDataGrid.ItemsSource = analysisResult.Signals
                     .Select(SignalViewRow.From)
                     .ToList();
+
+                var backtestResult = _backtestService.Run(analysisResult, new BacktestSettings());
+                BacktestSummaryText.Text = BuildBacktestSummary(backtestResult);
+
                 SetFetchingState(false, $"取得完了: {rows.Count}件");
             }
             catch (Exception ex)
@@ -142,6 +149,17 @@ namespace StockAnalyzer
             }
 
             throw new DirectoryNotFoundException("tools/fetcher/fetch_price_data.py が見つかりません。");
+        }
+
+        private static string BuildBacktestSummary(BacktestResult result)
+        {
+            ArgumentNullException.ThrowIfNull(result);
+
+            var winRateText = result.WinRate.HasValue ? $"{result.WinRate.Value * 100:N1}%" : "-";
+            var avgText = result.AverageProfitLossRate.HasValue ? $"{result.AverageProfitLossRate.Value * 100:N2}%" : "-";
+            var cumText = result.CumulativeProfitLossRate.HasValue ? $"{result.CumulativeProfitLossRate.Value * 100:N2}%" : "-";
+
+            return $"バックテスト(Buy→翌営業日始値IN/5営業日後終値OUT): Signals={result.TotalSignals}, Filled={result.FilledTrades}, WinRate={winRateText}, Avg={avgText}, Cum={cumText}";
         }
 
         private void SetFetchingState(bool isFetching, string? status = null)
