@@ -1,5 +1,7 @@
-﻿using StockAnalyzer.Analyzer;
-using StockAnalyzer.Models;
+﻿using StockAnalyzer.Models;
+using StockAnalyzer.Mappers;
+using StockAnalyzer.Presentation;
+using StockAnalyzer.Services;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -17,6 +19,8 @@ namespace StockAnalyzer
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly StockAnalysisService _stockAnalysisService = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -26,7 +30,7 @@ namespace StockAnalyzer
         {
             if (e.Column is not DataGridTextColumn tc || tc.Binding is not Binding b) return;
 
-            var models = new[] { typeof(PriceRow), typeof(SignalEntry) };
+            var models = new[] { typeof(PriceAnalysisRow), typeof(SignalViewRow) };
             PropertyInfo? property = null;
             foreach (var model in models)
             {
@@ -103,16 +107,16 @@ namespace StockAnalyzer
                 }) ?? [];
                 rows = [.. rows.OrderBy(r => r.Date)];
 
-                var closes = rows.Select(r => r.Close).ToList();
-                var ma75 = MovingAverageAnalyzer.CalculateSma(closes, 75);
-                for (int i = 0; i < rows.Count; i++)
-                {
-                    rows[i].MA75 = ma75[i];
-                }
-                var signals = CrossAnalyzer.DetectCrossSignals(rows);
+                var priceBars = rows.Select(PriceBarMapper.From).ToList();
+                var analysisResult = _stockAnalysisService.Analyze(priceBars);
 
-                PricesDataGrid.ItemsSource = rows;
-                SignalsDataGrid.ItemsSource = signals;
+                PricesDataGrid.ItemsSource = analysisResult.Bars
+                    .Select(PriceAnalysisRow.From)
+                    .ToList();
+
+                SignalsDataGrid.ItemsSource = analysisResult.Signals
+                    .Select(SignalViewRow.From)
+                    .ToList();
                 SetFetchingState(false, $"取得完了: {rows.Count}件");
             }
             catch (Exception ex)
