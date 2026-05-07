@@ -27,8 +27,10 @@ public sealed class SignalViewRow
 
         var previous = result.Candidate.Previous;
         var current = result.Candidate.Current;
-        var previousMa = previous.Ma75 ?? 0d;
-        var currentMa = current.Ma75 ?? 0d;
+        var previousMa = previous.Ma75
+            ?? throw new InvalidOperationException("Previous MA75 is required.");
+        var currentMa = current.Ma75
+            ?? throw new InvalidOperationException("Current MA75 is required.");
 
         return new SignalViewRow
         {
