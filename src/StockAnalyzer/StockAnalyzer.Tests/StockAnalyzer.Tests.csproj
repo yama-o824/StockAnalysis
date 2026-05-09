@@ -29,7 +29,10 @@
     <Compile Include="..\StockAnalyzer\Models\Analysis\CandleMetrics.cs" Link="Source\Models\Analysis\CandleMetrics.cs" />
     <Compile Include="..\StockAnalyzer\Models\Analysis\SignalCandidate.cs" Link="Source\Models\Analysis\SignalCandidate.cs" />
     <Compile Include="..\StockAnalyzer\Models\Analysis\SignalEvaluation.cs" Link="Source\Models\Analysis\SignalEvaluation.cs" />
+    <Compile Include="..\StockAnalyzer\Models\Analysis\SignalRank.cs" Link="Source\Models\Analysis\SignalRank.cs" />
     <Compile Include="..\StockAnalyzer\Models\Analysis\SignalResult.cs" Link="Source\Models\Analysis\SignalResult.cs" />
+    <Compile Include="..\StockAnalyzer\Models\Analysis\SignalScore.cs" Link="Source\Models\Analysis\SignalScore.cs" />
+    <Compile Include="..\StockAnalyzer\Models\Analysis\SignalScoreBreakdown.cs" Link="Source\Models\Analysis\SignalScoreBreakdown.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" Link="Source\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\PullbackEvaluator.cs" Link="Source\Analyzer\Signals\PullbackEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\SignalEvaluator.cs" Link="Source\Analyzer\Signals\SignalEvaluator.cs" />
