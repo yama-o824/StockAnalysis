@@ -10,6 +10,7 @@ public sealed class StockAnalysisService
     private readonly AnalysisBarBuilder _analysisBarBuilder = new();
     private readonly CrossSignalDetector _crossSignalDetector = new();
     private readonly SignalEvaluator _signalEvaluator = new();
+    private readonly SignalScoreCalculator _signalScoreCalculator = new();
 
     public AnalysisResult Analyze(IReadOnlyList<PriceBar> priceBars)
     {
@@ -19,12 +20,25 @@ public sealed class StockAnalysisService
         var signalCandidates = _crossSignalDetector.Detect(analysisBars);
         var signalResults = signalCandidates
             .Select(_signalEvaluator.Evaluate)
+            .Select(AddScore)
             .ToList();
 
         return new AnalysisResult
         {
             Bars = analysisBars,
             Signals = signalResults
+        };
+    }
+
+    private SignalResult AddScore(SignalResult signalResult)
+    {
+        return new SignalResult
+        {
+            Candidate = signalResult.Candidate,
+            Evaluation = signalResult.Evaluation,
+            Score = _signalScoreCalculator.Calculate(
+                signalResult.Candidate,
+                signalResult.Evaluation)
         };
     }
 }
