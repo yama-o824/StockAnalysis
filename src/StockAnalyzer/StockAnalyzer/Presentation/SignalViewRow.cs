@@ -16,6 +16,9 @@ public sealed class SignalViewRow
     public double? Avg20Volume { get; init; }
     public double? VolumeRatio { get; init; }
     public double? Ma75DeviationRate { get; init; }
+    public int? Score { get; init; }
+    public SignalRank? Rank { get; init; }
+    public string ScoreBreakdown { get; init; } = string.Empty;
     public bool HasVolumeSupport { get; init; }
     public bool IsPullbackBounce { get; init; }
     public bool HasStrongBullishCandle { get; init; }
@@ -45,10 +48,25 @@ public sealed class SignalViewRow
             Avg20Volume = current.Avg20Volume,
             VolumeRatio = current.VolumeRatio,
             Ma75DeviationRate = result.Evaluation.Ma75DeviationRate,
+            Score = result.Score?.Total,
+            Rank = result.Score?.Rank,
+            ScoreBreakdown = FormatScoreBreakdown(result.Score),
             HasVolumeSupport = result.Evaluation.HasVolumeSupport,
             IsPullbackBounce = result.Evaluation.IsPullbackBounce,
             HasStrongBullishCandle = result.Evaluation.HasStrongBullishCandle,
             Reasons = string.Join(" / ", result.Evaluation.Reasons)
         };
+    }
+
+    private static string FormatScoreBreakdown(SignalScore? score)
+    {
+        if (score is null)
+        {
+            return string.Empty;
+        }
+
+        return string.Join(
+            " / ",
+            score.Breakdowns.Select(x => $"{x.Label} {x.Points}/{x.MaxPoints}"));
     }
 }
