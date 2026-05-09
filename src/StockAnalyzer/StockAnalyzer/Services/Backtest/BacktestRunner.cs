@@ -66,6 +66,7 @@ public sealed class BacktestRunner
         {
             SignalDate = signal.Candidate.Date,
             SignalType = signal.Candidate.Type,
+            SignalScore = signal.Score,
             Reasons = signal.Evaluation.Reasons,
             EntryDate = entryBar.Date,
             EntryPrice = entryBar.Open,
