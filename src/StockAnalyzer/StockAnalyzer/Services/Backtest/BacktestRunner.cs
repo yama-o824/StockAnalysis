@@ -31,8 +31,8 @@ public sealed class BacktestRunner
         return new BacktestResult
         {
             Settings = settings,
-            SignalCount = signalCount,
-            Trades = trades
+            Trades = trades,
+            Summary = BacktestSummary.Create(signalCount, trades)
         };
     }
 
@@ -64,12 +64,14 @@ public sealed class BacktestRunner
 
         return new BacktestTrade
         {
-            Signal = signal,
             SignalDate = signal.Candidate.Date,
+            SignalType = signal.Candidate.Type,
+            Reasons = signal.Evaluation.Reasons,
             EntryDate = entryBar.Date,
             EntryPrice = entryBar.Open,
             ExitDate = exitBar.Date,
-            ExitPrice = exitBar.Close
+            ExitPrice = exitBar.Close,
+            HoldingBars = settings.ExitAfterBars
         };
     }
 
