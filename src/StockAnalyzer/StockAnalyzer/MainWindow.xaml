@@ -6,6 +6,14 @@
         xmlns:local="clr-namespace:StockAnalyzer"
         mc:Ignorable="d"
         Title="Stock Analyzer" Height="560" Width="980">
+    <Window.Resources>
+        <Style x:Key="NumericCellStyle" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+        <Style x:Key="CenterCellStyle" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
     <DockPanel Margin="12">
         <StackPanel DockPanel.Dock="Top">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -46,18 +54,126 @@
                            FontWeight="Bold"/>
                 <DataGrid Name="PricesDataGrid" 
                           Margin="0,10,0,0" 
-                          AutoGeneratingColumn="DataGrid_AutoGeneratingColumn"
                           IsReadOnly="True"
+                          AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
-                          CanUserReorderColumns="False"/>
+                          CanUserReorderColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="日付"
+                                            Binding="{Binding Date}"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="始値"
+                                            Binding="{Binding Open, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="高値"
+                                            Binding="{Binding High, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="安値"
+                                            Binding="{Binding Low, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="終値"
+                                            Binding="{Binding Close, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="出来高"
+                                            Binding="{Binding Volume, StringFormat=N0}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="110"/>
+                        <DataGridTextColumn Header="MA75"
+                                            Binding="{Binding MA75, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="20日平均出来高"
+                                            Binding="{Binding Avg20Volume, StringFormat=N0}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="130"/>
+                        <DataGridTextColumn Header="出来高倍率"
+                                            Binding="{Binding VolumeRatio, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="実体率"
+                                            Binding="{Binding BodyRate, StringFormat=P2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="上ヒゲ率"
+                                            Binding="{Binding UpperShadowRate, StringFormat=P2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="終値位置"
+                                            Binding="{Binding ClosePositionRate, StringFormat=P2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                    </DataGrid.Columns>
+                </DataGrid>
                 <TextBlock Text="シグナル一覧" Margin="0,16,0,4" FontWeight="Bold"/>
                 <DataGrid x:Name="SignalsDataGrid" 
-                          AutoGeneratingColumn="DataGrid_AutoGeneratingColumn"
                           IsReadOnly="True"
-                          AutoGenerateColumns="True" 
+                          AutoGenerateColumns="False" 
                           CanUserAddRows="False" 
-                          CanUserDeleteRows="False"/>
+                          CanUserDeleteRows="False"
+                          CanUserReorderColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="日付"
+                                            Binding="{Binding Date}"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="種別"
+                                            Binding="{Binding Type}"
+                                            ElementStyle="{StaticResource CenterCellStyle}"
+                                            Width="70"/>
+                        <DataGridTextColumn Header="前日終値"
+                                            Binding="{Binding PrevPrice, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="前日MA75"
+                                            Binding="{Binding PrevMa, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="前日乖離"
+                                            Binding="{Binding PrevDiff, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="当日終値"
+                                            Binding="{Binding Price, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="当日MA75"
+                                            Binding="{Binding Ma, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="当日乖離"
+                                            Binding="{Binding CurrentDiff, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="20日平均出来高"
+                                            Binding="{Binding Avg20Volume, StringFormat=N0}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="130"/>
+                        <DataGridTextColumn Header="出来高倍率"
+                                            Binding="{Binding VolumeRatio, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="MA75乖離率"
+                                            Binding="{Binding SignalStrength, StringFormat=P2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="100"/>
+                        <DataGridCheckBoxColumn Header="出来高支持"
+                                                Binding="{Binding HasVolumeSupport}"
+                                                Width="90"/>
+                        <DataGridCheckBoxColumn Header="押し目反発"
+                                                Binding="{Binding IsPullbackBounce}"
+                                                Width="90"/>
+                        <DataGridCheckBoxColumn Header="強い陽線"
+                                                Binding="{Binding HasStrongBullishCandle}"
+                                                Width="80"/>
+                        <DataGridTextColumn Header="根拠"
+                                            Binding="{Binding Reasons}"
+                                            Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
                 <TextBlock Text="バックテスト結果" Margin="0,16,0,4" FontWeight="Bold"/>
                 <TextBlock x:Name="BacktestPlaceholderText"
                            Margin="0,0,0,8"
@@ -125,29 +241,34 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="シグナル日"
                                             Binding="{Binding SignalDate}"
-                                            Width="SizeToHeader"/>
-                        <DataGridTextColumn Header="シグナル種別"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="種別"
                                             Binding="{Binding SignalType}"
-                                            Width="SizeToHeader"/>
+                                            ElementStyle="{StaticResource CenterCellStyle}"
+                                            Width="70"/>
                         <DataGridTextColumn Header="エントリー日"
                                             Binding="{Binding EntryDate}"
-                                            Width="SizeToHeader"/>
+                                            Width="100"/>
                         <DataGridTextColumn Header="エントリー価格"
                                             Binding="{Binding EntryPrice, StringFormat=N2}"
-                                            Width="SizeToHeader"/>
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="110"/>
                         <DataGridTextColumn Header="決済日"
                                             Binding="{Binding ExitDate}"
-                                            Width="SizeToHeader"/>
+                                            Width="100"/>
                         <DataGridTextColumn Header="決済価格"
                                             Binding="{Binding ExitPrice, StringFormat=N2}"
-                                            Width="SizeToHeader"/>
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="100"/>
                         <DataGridTextColumn Header="損益"
                                             Binding="{Binding ProfitLoss, StringFormat=N2}"
-                                            Width="SizeToHeader"/>
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
                         <DataGridTextColumn Header="損益率"
                                             Binding="{Binding ProfitLossRate, StringFormat=P2}"
-                                            Width="SizeToHeader"/>
-                        <DataGridTextColumn Header="シグナル根拠"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="根拠"
                                             Binding="{Binding Reasons}"
                                             Width="*"/>
                     </DataGrid.Columns>
