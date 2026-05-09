@@ -23,10 +23,16 @@ namespace StockAnalyzer
     {
         private readonly StockAnalysisService _stockAnalysisService = new();
         private readonly BacktestRunner _backtestRunner = new();
+        private readonly IReadOnlyList<SignalTypeOption> _signalTypeOptions =
+        [
+            new(SignalType.Buy, "買い"),
+            new(SignalType.Sell, "売り")
+        ];
 
         public MainWindow()
         {
             InitializeComponent();
+            InitializeBacktestSettingsInputs();
             ResetResultViews();
         }
 
@@ -61,6 +67,11 @@ namespace StockAnalyzer
             if (string.IsNullOrWhiteSpace(symbol))
             {
                 MessageBox.Show("銘柄を入力してください");
+                return;
+            }
+
+            if (!TryCreateBacktestSettings(out var backtestSettings))
+            {
                 return;
             }
 
@@ -114,7 +125,7 @@ namespace StockAnalyzer
 
                 var priceBars = rows.Select(PriceBarMapper.From).ToList();
                 var analysisResult = _stockAnalysisService.Analyze(priceBars);
-                var backtestResult = _backtestRunner.Run(analysisResult, new BacktestSettings());
+                var backtestResult = _backtestRunner.Run(analysisResult, backtestSettings);
 
                 PricesDataGrid.ItemsSource = analysisResult.Bars
                     .Select(PriceAnalysisRow.From)
@@ -163,10 +174,62 @@ namespace StockAnalyzer
         private void SetFetchingState(bool isFetching, string? status = null)
         {
             FetchButton.IsEnabled = !isFetching;
+            SignalTypeComboBox.IsEnabled = !isFetching;
+            EntryDelayTextBox.IsEnabled = !isFetching;
+            HoldingBarsTextBox.IsEnabled = !isFetching;
             LoadingBar.Visibility = isFetching ? Visibility.Visible : Visibility.Collapsed;
             StatusText.Text = status ?? (isFetching ? "取得中..." : "完了");
             Mouse.OverrideCursor = isFetching ? Cursors.Wait : null;
         }
+
+        private void InitializeBacktestSettingsInputs()
+        {
+            SignalTypeComboBox.ItemsSource = _signalTypeOptions;
+            SignalTypeComboBox.SelectedItem = _signalTypeOptions.First(x => x.Value == SignalType.Buy);
+        }
+
+        private bool TryCreateBacktestSettings(out BacktestSettings settings)
+        {
+            settings = default!;
+
+            if (SignalTypeComboBox.SelectedItem is not SignalTypeOption signalTypeOption)
+            {
+                MessageBox.Show("対象シグナルを選択してください。");
+                return false;
+            }
+
+            if (!TryParsePositiveInt(EntryDelayTextBox.Text, "エントリーまでの営業日数", out var entryDelayBars))
+            {
+                return false;
+            }
+
+            if (!TryParsePositiveInt(HoldingBarsTextBox.Text, "保有営業日数", out var exitAfterBars))
+            {
+                return false;
+            }
+
+            settings = new BacktestSettings
+            {
+                TargetSignalType = signalTypeOption.Value,
+                EntryDelayBars = entryDelayBars,
+                ExitAfterBars = exitAfterBars
+            };
+
+            return true;
+        }
+
+        private static bool TryParsePositiveInt(string? text, string label, out int value)
+        {
+            if (!int.TryParse(text, out value) || value < 1)
+            {
+                MessageBox.Show($"{label}は1以上の整数で入力してください。");
+                return false;
+            }
+
+            return true;
+        }
+
+        private sealed record SignalTypeOption(SignalType Value, string Label);
 
         private void ResetResultViews()
         {

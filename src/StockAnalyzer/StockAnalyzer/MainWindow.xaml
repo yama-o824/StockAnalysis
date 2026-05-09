@@ -7,17 +7,36 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <DockPanel Margin="12">
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-            <Label Content="銘柄：" Width="45"/>
-            <TextBox x:Name="SymbolTextBox" TextWrapping="Wrap" Width="165" Height="20"/>
-            <Button x:Name="FetchButton" Content="取得" Click="FetchButton_Click" Width="54" Margin="10,0,0,0"/>
-            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="10,0,0,0"/>
-            <ProgressBar x:Name="LoadingBar"
-                 Width="120"
-                 Height="14"
-                 Margin="12,0,0,0"
-                 IsIndeterminate="True"
-                 Visibility="Collapsed"/>
+        <StackPanel DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal">
+                <Label Content="銘柄：" Width="45"/>
+                <TextBox x:Name="SymbolTextBox" TextWrapping="Wrap" Width="165" Height="20"/>
+                <Button x:Name="FetchButton" Content="取得" Click="FetchButton_Click" Width="54" Margin="10,0,0,0"/>
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <ProgressBar x:Name="LoadingBar"
+                     Width="120"
+                     Height="14"
+                     Margin="12,0,0,0"
+                     IsIndeterminate="True"
+                     Visibility="Collapsed"/>
+            </StackPanel>
+            <WrapPanel Margin="0,8,0,0" VerticalAlignment="Center">
+                <Label Content="対象シグナル：" VerticalAlignment="Center"/>
+                <ComboBox x:Name="SignalTypeComboBox"
+                          DisplayMemberPath="Label"
+                          Width="100"
+                          Height="24"/>
+                <Label Content="エントリーまでの営業日数：" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <TextBox x:Name="EntryDelayTextBox"
+                         Width="48"
+                         Height="24"
+                         Text="1"/>
+                <Label Content="保有営業日数：" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <TextBox x:Name="HoldingBarsTextBox"
+                         Width="48"
+                         Height="24"
+                         Text="5"/>
+            </WrapPanel>
         </StackPanel>
         <ScrollViewer>
             <StackPanel Orientation="Vertical">
