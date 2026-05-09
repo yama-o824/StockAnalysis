@@ -6,20 +6,6 @@ WPFアプリからPython（yfinance）を起動し、株価データ（OHLCV）�
 
 ---
 
-## Phase3前の準備リファクタ
-
-この変更は、Phase3 のスコアリング機能を安全に追加するための準備です。
-既存の分析結果、バックテスト結果、Python連携、UIの見た目は変えない方針です。
-
-- `SignalStrength` を `Ma75DeviationRate` に命名整理
-  - Phase3 で追加予定の `SignalScore` と意味が衝突しないようにするため
-- 強い陽線判定を `StrongBullishCandleEvaluator` に分離
-- シグナル根拠文の生成を `SignalReasonBuilder` に分離
-- `SignalEvaluator` の既存挙動を固定する単体テストを追加
-- Phase3 の `SignalScore` / `SignalRank` 配置案を `docs/phase3-scoring-design.md` に整理
-
----
-
 ## v0.6 変更点
 
 - バックテスト用モデルを追加
@@ -128,7 +114,7 @@ src/StockAnalyzer
 | CurrentDiff | 当日の差分 |
 | Avg20Volume | 出来高20日平均 |
 | VolumeRatio | 当日出来高 / 出来高20日平均 |
-| Ma75DeviationRate | MA75からの乖離率 |
+| SignalStrength | MA75からの乖離率 |
 | HasVolumeSupport | 出来高を伴う上抜けか |
 | IsPullbackBounce | 押し目反発か |
 | HasStrongBullishCandle | 強い陽線か |
