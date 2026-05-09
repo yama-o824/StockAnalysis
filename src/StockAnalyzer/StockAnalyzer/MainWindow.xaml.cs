@@ -2,6 +2,8 @@
 using StockAnalyzer.Mappers;
 using StockAnalyzer.Presentation;
 using StockAnalyzer.Services;
+using StockAnalyzer.Services.Backtest;
+using StockAnalyzer.Models.Backtest;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -20,6 +22,7 @@ namespace StockAnalyzer
     public partial class MainWindow : Window
     {
         private readonly StockAnalysisService _stockAnalysisService = new();
+        private readonly BacktestRunner _backtestRunner = new();
 
         public MainWindow()
         {
@@ -30,7 +33,7 @@ namespace StockAnalyzer
         {
             if (e.Column is not DataGridTextColumn tc || tc.Binding is not Binding b) return;
 
-            var models = new[] { typeof(PriceAnalysisRow), typeof(SignalViewRow) };
+            var models = new[] { typeof(PriceAnalysisRow), typeof(SignalViewRow), typeof(BacktestViewRow) };
             PropertyInfo? property = null;
             foreach (var model in models)
             {
@@ -109,6 +112,7 @@ namespace StockAnalyzer
 
                 var priceBars = rows.Select(PriceBarMapper.From).ToList();
                 var analysisResult = _stockAnalysisService.Analyze(priceBars);
+                var backtestResult = _backtestRunner.Run(analysisResult, new BacktestSettings());
 
                 PricesDataGrid.ItemsSource = analysisResult.Bars
                     .Select(PriceAnalysisRow.From)
@@ -117,6 +121,13 @@ namespace StockAnalyzer
                 SignalsDataGrid.ItemsSource = analysisResult.Signals
                     .Select(SignalViewRow.From)
                     .ToList();
+
+                BacktestSummaryPanel.DataContext = BacktestSummaryViewModel.From(backtestResult);
+
+                BacktestDataGrid.ItemsSource = backtestResult.Trades
+                    .Select(BacktestViewRow.From)
+                    .ToList();
+
                 SetFetchingState(false, $"取得完了: {rows.Count}件");
             }
             catch (Exception ex)
