@@ -25,9 +25,13 @@ public sealed class BacktestRunner
             .Select(x => x!)
             .ToList();
 
+        var signalCount = analysisResult.Signals
+            .Count(x => x.Candidate.Type == settings.TargetSignalType);
+
         return new BacktestResult
         {
             Settings = settings,
+            SignalCount = signalCount,
             Trades = trades
         };
     }

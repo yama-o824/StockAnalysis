@@ -123,7 +123,10 @@ namespace StockAnalyzer
                     .ToList();
 
                 BacktestSummaryText.Text =
-                    $"取引数: {backtestResult.TradeCount} / 勝率: {backtestResult.WinRate:P2} / 平均損益率: {backtestResult.AverageProfitLossRate:P2}";
+                    $"対象シグナル: {backtestResult.SignalCount} / 約定: {backtestResult.TradeCount} / " +
+                    $"スキップ: {backtestResult.SkippedSignalCount} / 勝率: {backtestResult.WinRate:P2} / " +
+                    $"平均損益率: {backtestResult.AverageProfitLossRate:P2} / 平均勝ち: {backtestResult.AverageWinRate:P2} / " +
+                    $"平均負け: {backtestResult.AverageLossRate:P2}";
 
                 BacktestDataGrid.ItemsSource = backtestResult.Trades
                     .Select(BacktestViewRow.From)
