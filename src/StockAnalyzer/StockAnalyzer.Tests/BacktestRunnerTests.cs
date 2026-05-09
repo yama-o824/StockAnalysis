@@ -26,12 +26,15 @@ public sealed class BacktestRunnerTests
 
         var trade = Assert.Single(result.Trades);
         Assert.Equal(new DateOnly(2024, 1, 2), trade.SignalDate);
+        Assert.Equal(SignalType.Buy, trade.SignalType);
         Assert.Equal(new DateOnly(2024, 1, 3), trade.EntryDate);
         Assert.Equal(102d, trade.EntryPrice);
         Assert.Equal(new DateOnly(2024, 1, 8), trade.ExitDate);
         Assert.Equal(107.5d, trade.ExitPrice);
-        Assert.Equal(1, result.SignalCount);
-        Assert.Equal(0, result.SkippedSignalCount);
+        Assert.Equal(5, trade.HoldingBars);
+        Assert.Equal(["test"], trade.Reasons);
+        Assert.Equal(1, result.Summary.SignalCount);
+        Assert.Equal(0, result.Summary.SkippedSignalCount);
     }
 
     [Fact(DisplayName = "対象がBuy設定のとき、Sellシグナルはバックテスト対象外にする")]
@@ -49,8 +52,8 @@ public sealed class BacktestRunnerTests
         var result = _sut.Run(analysisResult, new BacktestSettings());
 
         var trade = Assert.Single(result.Trades);
-        Assert.Equal(SignalType.Buy, trade.Signal.Candidate.Type);
-        Assert.Equal(1, result.SignalCount);
+        Assert.Equal(SignalType.Buy, trade.SignalType);
+        Assert.Equal(1, result.Summary.SignalCount);
     }
 
     [Fact(DisplayName = "決済に必要な営業日が足りないシグナルはスキップする")]
@@ -67,8 +70,8 @@ public sealed class BacktestRunnerTests
         var result = _sut.Run(analysisResult, new BacktestSettings());
 
         Assert.Empty(result.Trades);
-        Assert.Equal(1, result.SignalCount);
-        Assert.Equal(1, result.SkippedSignalCount);
+        Assert.Equal(1, result.Summary.SignalCount);
+        Assert.Equal(1, result.Summary.SkippedSignalCount);
     }
 
     [Theory(DisplayName = "不正なBacktestSettingsは例外にする")]

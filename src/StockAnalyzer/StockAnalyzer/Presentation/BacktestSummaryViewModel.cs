@@ -15,16 +15,17 @@ public sealed class BacktestSummaryViewModel
     public static BacktestSummaryViewModel From(BacktestResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
+        var summary = result.Summary;
 
         return new BacktestSummaryViewModel
         {
-            SignalCount = result.SignalCount,
-            TradeCount = result.TradeCount,
-            SkippedSignalCount = result.SkippedSignalCount,
-            WinRate = result.WinRate,
-            AverageProfitLossRate = result.AverageProfitLossRate,
-            AverageWinRate = result.AverageWinRate,
-            AverageLossRate = result.AverageLossRate
+            SignalCount = summary.SignalCount,
+            TradeCount = summary.TradeCount,
+            SkippedSignalCount = summary.SkippedSignalCount,
+            WinRate = summary.WinRate,
+            AverageProfitLossRate = summary.AverageProfitLossRate,
+            AverageWinRate = summary.AverageWinRate,
+            AverageLossRate = summary.AverageLossRate
         };
     }
 }

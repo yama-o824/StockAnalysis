@@ -22,14 +22,14 @@ public sealed class BacktestViewRow
         return new BacktestViewRow
         {
             SignalDate = trade.SignalDate.ToString("yyyy-MM-dd"),
-            SignalType = trade.Signal.Candidate.Type,
+            SignalType = trade.SignalType,
             EntryDate = trade.EntryDate.ToString("yyyy-MM-dd"),
             EntryPrice = trade.EntryPrice,
             ExitDate = trade.ExitDate.ToString("yyyy-MM-dd"),
             ExitPrice = trade.ExitPrice,
             ProfitLoss = trade.ProfitLoss,
             ProfitLossRate = trade.ProfitLossRate,
-            Reasons = string.Join(" / ", trade.Signal.Evaluation.Reasons)
+            Reasons = string.Join(" / ", trade.Reasons)
         };
     }
 }
