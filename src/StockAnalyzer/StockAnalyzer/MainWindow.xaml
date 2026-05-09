@@ -21,7 +21,7 @@
         </StackPanel>
         <ScrollViewer>
             <StackPanel Orientation="Vertical">
-                <TextBlock Text="取得データ一覧"
+                <TextBlock Text="価格データ一覧"
                            Margin="0,16,0,4"
                            FontWeight="Bold"/>
                 <DataGrid Name="PricesDataGrid" 
@@ -42,7 +42,7 @@
                 <TextBlock x:Name="BacktestPlaceholderText"
                            Margin="0,0,0,8"
                            Foreground="#586069"
-                           Text="データ取得後に、バックテスト結果を表示します。"/>
+                           Text="価格データを取得すると、バックテスト結果を表示します。"/>
                 <Border x:Name="BacktestSummaryPanel"
                         Margin="0,0,0,8"
                         Padding="10"
@@ -67,7 +67,7 @@
                             <TextBlock Text="{Binding SignalCount, StringFormat=N0}"/>
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,8">
-                            <TextBlock Text="約定数" FontWeight="SemiBold"/>
+                            <TextBlock Text="取引数" FontWeight="SemiBold"/>
                             <TextBlock Text="{Binding TradeCount, StringFormat=N0}"/>
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,8">
@@ -84,12 +84,12 @@
                             <TextBlock Text="{Binding AverageProfitLossRate, StringFormat=P2}"/>
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,8">
-                            <TextBlock Text="平均勝ち" FontWeight="SemiBold"/>
+                            <TextBlock Text="平均利益率" FontWeight="SemiBold"/>
                             <TextBlock Text="{Binding AverageWinRate, StringFormat=P2}"/>
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="平均負け" FontWeight="SemiBold"/>
+                            <TextBlock Text="平均損失率" FontWeight="SemiBold"/>
                             <TextBlock Text="{Binding AverageLossRate, StringFormat=P2}"/>
                         </StackPanel>
                     </Grid>
@@ -105,19 +105,19 @@
                         <DataGridTextColumn Header="シグナル日"
                                             Binding="{Binding SignalDate}"
                                             Width="SizeToHeader"/>
-                        <DataGridTextColumn Header="種別"
+                        <DataGridTextColumn Header="シグナル種別"
                                             Binding="{Binding SignalType}"
                                             Width="SizeToHeader"/>
-                        <DataGridTextColumn Header="Entry日"
+                        <DataGridTextColumn Header="エントリー日"
                                             Binding="{Binding EntryDate}"
                                             Width="SizeToHeader"/>
-                        <DataGridTextColumn Header="Entry価格"
+                        <DataGridTextColumn Header="エントリー価格"
                                             Binding="{Binding EntryPrice, StringFormat=N2}"
                                             Width="SizeToHeader"/>
-                        <DataGridTextColumn Header="Exit日"
+                        <DataGridTextColumn Header="決済日"
                                             Binding="{Binding ExitDate}"
                                             Width="SizeToHeader"/>
-                        <DataGridTextColumn Header="Exit価格"
+                        <DataGridTextColumn Header="決済価格"
                                             Binding="{Binding ExitPrice, StringFormat=N2}"
                                             Width="SizeToHeader"/>
                         <DataGridTextColumn Header="損益"
@@ -126,7 +126,7 @@
                         <DataGridTextColumn Header="損益率"
                                             Binding="{Binding ProfitLossRate, StringFormat=P2}"
                                             Width="SizeToHeader"/>
-                        <DataGridTextColumn Header="判定根拠"
+                        <DataGridTextColumn Header="シグナル根拠"
                                             Binding="{Binding Reasons}"
                                             Width="*"/>
                     </DataGrid.Columns>
