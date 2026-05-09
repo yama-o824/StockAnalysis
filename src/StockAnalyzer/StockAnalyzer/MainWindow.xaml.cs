@@ -1,4 +1,5 @@
 ﻿using StockAnalyzer.Models;
+using StockAnalyzer.Models.Analysis;
 using StockAnalyzer.Mappers;
 using StockAnalyzer.Presentation;
 using StockAnalyzer.Services;
@@ -23,6 +24,7 @@ namespace StockAnalyzer
     {
         private readonly StockAnalysisService _stockAnalysisService = new();
         private readonly BacktestRunner _backtestRunner = new();
+        private AnalysisResult? _currentAnalysisResult;
         private readonly IReadOnlyList<SignalTypeOption> _signalTypeOptions =
         [
             new(SignalType.Buy, "買い"),
@@ -125,7 +127,7 @@ namespace StockAnalyzer
 
                 var priceBars = rows.Select(PriceBarMapper.From).ToList();
                 var analysisResult = _stockAnalysisService.Analyze(priceBars);
-                var backtestResult = _backtestRunner.Run(analysisResult, backtestSettings);
+                _currentAnalysisResult = analysisResult;
 
                 PricesDataGrid.ItemsSource = analysisResult.Bars
                     .Select(PriceAnalysisRow.From)
@@ -135,21 +137,40 @@ namespace StockAnalyzer
                     .Select(SignalViewRow.From)
                     .ToList();
 
-                BacktestSummaryPanel.DataContext = BacktestSummaryViewModel.From(backtestResult);
-
-                BacktestDataGrid.ItemsSource = backtestResult.Trades
-                    .Select(BacktestViewRow.From)
-                    .ToList();
-
-                ShowResultViews();
+                UpdateBacktestResult(backtestSettings);
 
                 SetFetchingState(false, $"取得完了: {rows.Count}件");
             }
             catch (Exception ex)
             {
+                _currentAnalysisResult = null;
                 ResetResultViews();
                 SetFetchingState(false, "取得失敗");
                 ShowFriendlyError(ex, stderr, exitCode);
+            }
+        }
+
+        private void RefreshBacktestButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentAnalysisResult is null)
+            {
+                MessageBox.Show("先に価格データを取得してください。");
+                return;
+            }
+
+            if (!TryCreateBacktestSettings(out var backtestSettings))
+            {
+                return;
+            }
+
+            try
+            {
+                UpdateBacktestResult(backtestSettings);
+                StatusText.Text = "バックテスト結果を更新しました。";
+            }
+            catch (Exception ex)
+            {
+                ShowFriendlyError(ex);
             }
         }
 
@@ -174,6 +195,7 @@ namespace StockAnalyzer
         private void SetFetchingState(bool isFetching, string? status = null)
         {
             FetchButton.IsEnabled = !isFetching;
+            RefreshBacktestButton.IsEnabled = !isFetching && _currentAnalysisResult is not null;
             SignalTypeComboBox.IsEnabled = !isFetching;
             EntryDelayTextBox.IsEnabled = !isFetching;
             HoldingBarsTextBox.IsEnabled = !isFetching;
@@ -231,6 +253,23 @@ namespace StockAnalyzer
 
         private sealed record SignalTypeOption(SignalType Value, string Label);
 
+        private void UpdateBacktestResult(BacktestSettings settings)
+        {
+            if (_currentAnalysisResult is null)
+            {
+                throw new InvalidOperationException("AnalysisResult is not loaded.");
+            }
+
+            var backtestResult = _backtestRunner.Run(_currentAnalysisResult, settings);
+
+            BacktestSummaryPanel.DataContext = BacktestSummaryViewModel.From(backtestResult);
+            BacktestDataGrid.ItemsSource = backtestResult.Trades
+                .Select(BacktestViewRow.From)
+                .ToList();
+
+            ShowResultViews();
+        }
+
         private void ResetResultViews()
         {
             PricesDataGrid.ItemsSource = null;
@@ -241,6 +280,7 @@ namespace StockAnalyzer
             BacktestPlaceholderText.Visibility = Visibility.Visible;
             BacktestSummaryPanel.Visibility = Visibility.Collapsed;
             BacktestDataGrid.Visibility = Visibility.Collapsed;
+            RefreshBacktestButton.IsEnabled = _currentAnalysisResult is not null;
         }
 
         private void ShowResultViews()
