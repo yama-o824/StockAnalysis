@@ -27,7 +27,7 @@ public sealed class SignalEvaluatorTests
         var result = _sut.Evaluate(candidate);
 
         Assert.Same(candidate, result.Candidate);
-        Assert.Equal(0.06d, result.Evaluation.SignalStrength, precision: 10);
+        Assert.Equal(0.06d, result.Evaluation.Ma75DeviationRate, precision: 10);
         Assert.True(result.Evaluation.HasVolumeSupport);
         Assert.True(result.Evaluation.HasStrongBullishCandle);
         Assert.True(result.Evaluation.IsPullbackBounce);
@@ -58,7 +58,7 @@ public sealed class SignalEvaluatorTests
 
         var result = _sut.Evaluate(candidate);
 
-        Assert.Equal(0.06d, result.Evaluation.SignalStrength, precision: 10);
+        Assert.Equal(0.06d, result.Evaluation.Ma75DeviationRate, precision: 10);
         Assert.False(result.Evaluation.HasVolumeSupport);
         Assert.False(result.Evaluation.HasStrongBullishCandle);
         Assert.False(result.Evaluation.IsPullbackBounce);
@@ -81,7 +81,7 @@ public sealed class SignalEvaluatorTests
 
         var result = _sut.Evaluate(candidate);
 
-        Assert.Null(result.Evaluation.SignalStrength);
+        Assert.Null(result.Evaluation.Ma75DeviationRate);
         Assert.False(result.Evaluation.HasVolumeSupport);
         Assert.False(result.Evaluation.HasStrongBullishCandle);
         Assert.False(result.Evaluation.IsPullbackBounce);

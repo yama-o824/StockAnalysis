@@ -23,7 +23,7 @@ public sealed class SignalEvaluator
             Candidate = candidate,
             Evaluation = new SignalEvaluation
             {
-                SignalStrength = ma75DeviationRate,
+                Ma75DeviationRate = ma75DeviationRate,
                 HasVolumeSupport = hasVolumeSupport,
                 HasStrongBullishCandle = hasStrongBullishCandle,
                 IsPullbackBounce = isPullbackBounce,

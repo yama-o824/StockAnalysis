@@ -196,7 +196,7 @@
                                             ElementStyle="{StaticResource NumericCellStyle}"
                                             Width="100"/>
                         <DataGridTextColumn Header="MA75乖離率"
-                                            Binding="{Binding SignalStrength, StringFormat=P2}"
+                                            Binding="{Binding Ma75DeviationRate, StringFormat=P2}"
                                             ElementStyle="{StaticResource NumericCellStyle}"
                                             Width="100"/>
                         <DataGridCheckBoxColumn Header="出来高支持"
