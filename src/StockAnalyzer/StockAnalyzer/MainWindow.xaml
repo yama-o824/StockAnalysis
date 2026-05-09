@@ -5,15 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StockAnalyzer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Stock Analyzer" Height="560" Width="980">
     <DockPanel Margin="12">
         <StackPanel DockPanel.Dock="Top">
-            <StackPanel Orientation="Horizontal">
-                <Label Content="銘柄：" Width="45"/>
-                <TextBox x:Name="SymbolTextBox" TextWrapping="Wrap" Width="165" Height="20"/>
-                <Button x:Name="FetchButton" Content="取得" Click="FetchButton_Click" Width="54" Margin="10,0,0,0"/>
-                <Button x:Name="RefreshBacktestButton" Content="結果更新" Click="RefreshBacktestButton_Click" Width="78" Margin="8,0,0,0"/>
-                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Label Content="銘柄" Width="48" VerticalAlignment="Center"/>
+                <TextBox x:Name="SymbolTextBox" TextWrapping="Wrap" Width="180" Height="24"/>
+                <Button x:Name="FetchButton" Content="取得" Click="FetchButton_Click" Width="64" Height="24" Margin="10,0,0,0"/>
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="14,0,0,0"/>
                 <ProgressBar x:Name="LoadingBar"
                      Width="120"
                      Height="14"
@@ -22,21 +21,22 @@
                      Visibility="Collapsed"/>
             </StackPanel>
             <WrapPanel Margin="0,8,0,0" VerticalAlignment="Center">
-                <Label Content="対象シグナル：" VerticalAlignment="Center"/>
+                <Label Content="対象シグナル" VerticalAlignment="Center"/>
                 <ComboBox x:Name="SignalTypeComboBox"
                           DisplayMemberPath="Label"
                           Width="100"
                           Height="24"/>
-                <Label Content="エントリーまでの営業日数：" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <Label Content="エントリーまでの営業日数" Margin="12,0,0,0" VerticalAlignment="Center"/>
                 <TextBox x:Name="EntryDelayTextBox"
                          Width="48"
                          Height="24"
                          Text="1"/>
-                <Label Content="保有営業日数：" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <Label Content="保有営業日数" Margin="12,0,0,0" VerticalAlignment="Center"/>
                 <TextBox x:Name="HoldingBarsTextBox"
                          Width="48"
                          Height="24"
                          Text="5"/>
+                <Button x:Name="RefreshBacktestButton" Content="バックテスト更新" Click="RefreshBacktestButton_Click" Width="116" Height="24" Margin="12,0,0,0"/>
             </WrapPanel>
         </StackPanel>
         <ScrollViewer>
