@@ -90,11 +90,41 @@
                     </Grid>
                 </Border>
                 <DataGrid x:Name="BacktestDataGrid"
-                          AutoGeneratingColumn="DataGrid_AutoGeneratingColumn"
                           IsReadOnly="True"
-                          AutoGenerateColumns="True"
+                          AutoGenerateColumns="False"
                           CanUserAddRows="False"
-                          CanUserDeleteRows="False"/>
+                          CanUserDeleteRows="False"
+                          CanUserReorderColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="シグナル日"
+                                            Binding="{Binding SignalDate}"
+                                            Width="SizeToHeader"/>
+                        <DataGridTextColumn Header="種別"
+                                            Binding="{Binding SignalType}"
+                                            Width="SizeToHeader"/>
+                        <DataGridTextColumn Header="Entry日"
+                                            Binding="{Binding EntryDate}"
+                                            Width="SizeToHeader"/>
+                        <DataGridTextColumn Header="Entry価格"
+                                            Binding="{Binding EntryPrice, StringFormat=N2}"
+                                            Width="SizeToHeader"/>
+                        <DataGridTextColumn Header="Exit日"
+                                            Binding="{Binding ExitDate}"
+                                            Width="SizeToHeader"/>
+                        <DataGridTextColumn Header="Exit価格"
+                                            Binding="{Binding ExitPrice, StringFormat=N2}"
+                                            Width="SizeToHeader"/>
+                        <DataGridTextColumn Header="損益"
+                                            Binding="{Binding ProfitLoss, StringFormat=N2}"
+                                            Width="SizeToHeader"/>
+                        <DataGridTextColumn Header="損益率"
+                                            Binding="{Binding ProfitLossRate, StringFormat=P2}"
+                                            Width="SizeToHeader"/>
+                        <DataGridTextColumn Header="判定根拠"
+                                            Binding="{Binding Reasons}"
+                                            Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
             </StackPanel>
         </ScrollViewer>
     </DockPanel>
