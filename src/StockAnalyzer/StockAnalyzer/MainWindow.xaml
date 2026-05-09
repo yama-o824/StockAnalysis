@@ -39,8 +39,56 @@
                           CanUserAddRows="False" 
                           CanUserDeleteRows="False"/>
                 <TextBlock Text="バックテスト結果" Margin="0,16,0,4" FontWeight="Bold"/>
-                <TextBlock x:Name="BacktestSummaryText"
-                           Margin="0,0,0,8"/>
+                <Border x:Name="BacktestSummaryPanel"
+                        Margin="0,0,0,8"
+                        Padding="10"
+                        BorderBrush="#D0D7DE"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,8">
+                            <TextBlock Text="対象シグナル" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding SignalCount, StringFormat=N0}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,8">
+                            <TextBlock Text="約定数" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding TradeCount, StringFormat=N0}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,8">
+                            <TextBlock Text="スキップ数" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding SkippedSignalCount, StringFormat=N0}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,8">
+                            <TextBlock Text="勝率" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding WinRate, StringFormat=P2}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,12,8">
+                            <TextBlock Text="平均損益率" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding AverageProfitLossRate, StringFormat=P2}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,8">
+                            <TextBlock Text="平均勝ち" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding AverageWinRate, StringFormat=P2}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="平均負け" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding AverageLossRate, StringFormat=P2}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
                 <DataGrid x:Name="BacktestDataGrid"
                           AutoGeneratingColumn="DataGrid_AutoGeneratingColumn"
                           IsReadOnly="True"
