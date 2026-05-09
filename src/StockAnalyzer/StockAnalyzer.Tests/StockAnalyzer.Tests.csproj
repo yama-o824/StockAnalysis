@@ -33,6 +33,7 @@
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" Link="Source\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\PullbackEvaluator.cs" Link="Source\Analyzer\Signals\PullbackEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\SignalEvaluator.cs" Link="Source\Analyzer\Signals\SignalEvaluator.cs" />
+    <Compile Include="..\StockAnalyzer\Analyzer\Signals\SignalReasonBuilder.cs" Link="Source\Analyzer\Signals\SignalReasonBuilder.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\StrongBullishCandleEvaluator.cs" Link="Source\Analyzer\Signals\StrongBullishCandleEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\VolumeSupportEvaluator.cs" Link="Source\Analyzer\Signals\VolumeSupportEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Models\Backtest\BacktestSettings.cs" Link="Source\Models\Backtest\BacktestSettings.cs" />

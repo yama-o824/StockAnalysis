@@ -8,6 +8,7 @@ public sealed class SignalEvaluator
     private readonly VolumeSupportEvaluator _volumeSupportEvaluator = new();
     private readonly StrongBullishCandleEvaluator _strongBullishCandleEvaluator = new();
     private readonly PullbackEvaluator _pullbackEvaluator = new();
+    private readonly SignalReasonBuilder _signalReasonBuilder = new();
 
     public SignalResult Evaluate(SignalCandidate candidate)
     {
@@ -17,65 +18,25 @@ public sealed class SignalEvaluator
         var hasVolumeSupport = _volumeSupportEvaluator.HasSupport(candidate);
         var hasStrongBullishCandle = _strongBullishCandleEvaluator.IsStrongBullishCandle(candidate);
         var isPullbackBounce = _pullbackEvaluator.IsPullbackBounce(candidate);
+        var evaluation = new SignalEvaluation
+        {
+            Ma75DeviationRate = ma75DeviationRate,
+            HasVolumeSupport = hasVolumeSupport,
+            HasStrongBullishCandle = hasStrongBullishCandle,
+            IsPullbackBounce = isPullbackBounce
+        };
 
         return new SignalResult
         {
             Candidate = candidate,
             Evaluation = new SignalEvaluation
             {
-                Ma75DeviationRate = ma75DeviationRate,
-                HasVolumeSupport = hasVolumeSupport,
-                HasStrongBullishCandle = hasStrongBullishCandle,
-                IsPullbackBounce = isPullbackBounce,
-                Reasons = BuildReasons(
-                    ma75DeviationRate,
-                    hasVolumeSupport,
-                    hasStrongBullishCandle,
-                    isPullbackBounce,
-                    candidate)
+                Ma75DeviationRate = evaluation.Ma75DeviationRate,
+                HasVolumeSupport = evaluation.HasVolumeSupport,
+                HasStrongBullishCandle = evaluation.HasStrongBullishCandle,
+                IsPullbackBounce = evaluation.IsPullbackBounce,
+                Reasons = _signalReasonBuilder.Build(candidate, evaluation)
             }
         };
-    }
-
-    private static IReadOnlyList<string> BuildReasons(
-        double? ma75DeviationRate,
-        bool hasVolumeSupport,
-        bool hasStrongBullishCandle,
-        bool isPullbackBounce,
-        SignalCandidate candidate)
-    {
-        var reasons = new List<string>();
-
-        if (ma75DeviationRate is not null)
-        {
-            reasons.Add($"Ma75DeviationRate={ma75DeviationRate.Value:P2}");
-        }
-
-        if (candidate.Current.VolumeRatio is not null)
-        {
-            reasons.Add($"VolumeRatio={candidate.Current.VolumeRatio.Value:N2}");
-        }
-
-        if (hasVolumeSupport)
-        {
-            reasons.Add("出来高を伴う上抜け");
-        }
-
-        if (hasStrongBullishCandle)
-        {
-            reasons.Add("強い陽線");
-        }
-
-        if (isPullbackBounce)
-        {
-            reasons.Add("MA75押し目反発");
-        }
-
-        if (reasons.Count == 0)
-        {
-            reasons.Add("クロスのみ");
-        }
-
-        return reasons;
     }
 }
