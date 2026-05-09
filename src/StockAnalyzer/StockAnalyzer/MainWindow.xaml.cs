@@ -27,6 +27,7 @@ namespace StockAnalyzer
         public MainWindow()
         {
             InitializeComponent();
+            ResetResultViews();
         }
 
         private void DataGrid_AutoGeneratingColumn(object? sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -63,6 +64,7 @@ namespace StockAnalyzer
                 return;
             }
 
+            ResetResultViews();
             SetFetchingState(true, "取得中...");
 
             var period = "1y";
@@ -128,10 +130,13 @@ namespace StockAnalyzer
                     .Select(BacktestViewRow.From)
                     .ToList();
 
+                ShowResultViews();
+
                 SetFetchingState(false, $"取得完了: {rows.Count}件");
             }
             catch (Exception ex)
             {
+                ResetResultViews();
                 SetFetchingState(false, "取得失敗");
                 ShowFriendlyError(ex, stderr, exitCode);
             }
@@ -161,6 +166,25 @@ namespace StockAnalyzer
             LoadingBar.Visibility = isFetching ? Visibility.Visible : Visibility.Collapsed;
             StatusText.Text = status ?? (isFetching ? "取得中..." : "完了");
             Mouse.OverrideCursor = isFetching ? Cursors.Wait : null;
+        }
+
+        private void ResetResultViews()
+        {
+            PricesDataGrid.ItemsSource = null;
+            SignalsDataGrid.ItemsSource = null;
+            BacktestDataGrid.ItemsSource = null;
+            BacktestSummaryPanel.DataContext = null;
+
+            BacktestPlaceholderText.Visibility = Visibility.Visible;
+            BacktestSummaryPanel.Visibility = Visibility.Collapsed;
+            BacktestDataGrid.Visibility = Visibility.Collapsed;
+        }
+
+        private void ShowResultViews()
+        {
+            BacktestPlaceholderText.Visibility = Visibility.Collapsed;
+            BacktestSummaryPanel.Visibility = Visibility.Visible;
+            BacktestDataGrid.Visibility = Visibility.Visible;
         }
 
         private void ShowFriendlyError(Exception ex, string? stderr = null, int? exitCode = null)

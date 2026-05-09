@@ -39,12 +39,17 @@
                           CanUserAddRows="False" 
                           CanUserDeleteRows="False"/>
                 <TextBlock Text="バックテスト結果" Margin="0,16,0,4" FontWeight="Bold"/>
+                <TextBlock x:Name="BacktestPlaceholderText"
+                           Margin="0,0,0,8"
+                           Foreground="#586069"
+                           Text="データ取得後に、バックテスト結果を表示します。"/>
                 <Border x:Name="BacktestSummaryPanel"
                         Margin="0,0,0,8"
                         Padding="10"
                         BorderBrush="#D0D7DE"
                         BorderThickness="1"
-                        CornerRadius="6">
+                        CornerRadius="6"
+                        Visibility="Collapsed">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -94,7 +99,8 @@
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
-                          CanUserReorderColumns="False">
+                          CanUserReorderColumns="False"
+                          Visibility="Collapsed">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="シグナル日"
                                             Binding="{Binding SignalDate}"
