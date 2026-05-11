@@ -19,6 +19,11 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Label Content="銘柄" Width="48" VerticalAlignment="Center"/>
                 <TextBox x:Name="SymbolTextBox" TextWrapping="Wrap" Width="180" Height="24"/>
+                <Label Content="履歴" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <ComboBox x:Name="SymbolHistoryComboBox"
+                          SelectionChanged="SymbolHistoryComboBox_SelectionChanged"
+                          Width="120"
+                          Height="24"/>
                 <Label Content="期間" Margin="12,0,0,0" VerticalAlignment="Center"/>
                 <ComboBox x:Name="PeriodComboBox"
                           DisplayMemberPath="Label"
