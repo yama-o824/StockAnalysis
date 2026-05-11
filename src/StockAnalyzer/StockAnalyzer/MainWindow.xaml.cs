@@ -39,14 +39,14 @@ namespace StockAnalyzer
 
         private async void FetchButton_Click(object sender, RoutedEventArgs e)
         {
-            var symbol = SymbolHistory.Normalize(SymbolTextBox.Text);
+            var symbol = SymbolHistory.Normalize(SymbolComboBox.Text);
             if (string.IsNullOrWhiteSpace(symbol))
             {
                 MessageBox.Show("銘柄を入力してください");
                 return;
             }
 
-            SymbolTextBox.Text = symbol;
+            SymbolComboBox.Text = symbol;
 
             if (!TryCreateBacktestSettings(out var backtestSettings))
             {
@@ -179,7 +179,7 @@ namespace StockAnalyzer
         {
             FetchButton.IsEnabled = !isFetching;
             RefreshBacktestButton.IsEnabled = !isFetching && _currentAnalysisResult is not null;
-            SymbolHistoryComboBox.IsEnabled = !isFetching;
+            SymbolComboBox.IsEnabled = !isFetching;
             PeriodComboBox.IsEnabled = !isFetching;
             SignalTypeComboBox.IsEnabled = !isFetching;
             EntryDelayTextBox.IsEnabled = !isFetching;
@@ -202,19 +202,11 @@ namespace StockAnalyzer
         {
             try
             {
-                SymbolHistoryComboBox.ItemsSource = _symbolHistoryStore.Load();
+                SymbolComboBox.ItemsSource = _symbolHistoryStore.Load();
             }
             catch
             {
-                SymbolHistoryComboBox.ItemsSource = Array.Empty<string>();
-            }
-        }
-
-        private void SymbolHistoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (SymbolHistoryComboBox.SelectedItem is string symbol)
-            {
-                SymbolTextBox.Text = symbol;
+                SymbolComboBox.ItemsSource = Array.Empty<string>();
             }
         }
 
@@ -223,8 +215,8 @@ namespace StockAnalyzer
             try
             {
                 var symbols = _symbolHistoryStore.Add(symbol);
-                SymbolHistoryComboBox.ItemsSource = symbols;
-                SymbolHistoryComboBox.SelectedItem = symbols.FirstOrDefault();
+                SymbolComboBox.ItemsSource = symbols;
+                SymbolComboBox.Text = symbol;
             }
             catch
             {
