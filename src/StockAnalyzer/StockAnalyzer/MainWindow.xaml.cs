@@ -28,15 +28,6 @@ namespace StockAnalyzer
             new(SignalType.Buy, "買い"),
             new(SignalType.Sell, "売り")
         ];
-        private readonly IReadOnlyList<PeriodOption> _periodOptions =
-        [
-            new("3mo", "3ヶ月"),
-            new("6mo", "6ヶ月"),
-            new("1y", "1年"),
-            new("3y", "3年"),
-            new("5y", "5年")
-        ];
-
         public MainWindow()
         {
             InitializeComponent();
@@ -194,8 +185,8 @@ namespace StockAnalyzer
 
         private void InitializeBacktestSettingsInputs()
         {
-            PeriodComboBox.ItemsSource = _periodOptions;
-            PeriodComboBox.SelectedItem = _periodOptions.First(x => x.Value == "1y");
+            PeriodComboBox.ItemsSource = PeriodOptions.All;
+            PeriodComboBox.SelectedItem = PeriodOptions.All.First(x => x.Value == PeriodOptions.DefaultValue);
 
             SignalTypeComboBox.ItemsSource = _signalTypeOptions;
             SignalTypeComboBox.SelectedItem = _signalTypeOptions.First(x => x.Value == SignalType.Buy);
