@@ -28,7 +28,6 @@ namespace StockAnalyzer
             new(SignalType.Buy, "買い"),
             new(SignalType.Sell, "売り")
         ];
-
         public MainWindow()
         {
             InitializeComponent();
@@ -50,10 +49,16 @@ namespace StockAnalyzer
                 return;
             }
 
+            if (PeriodComboBox.SelectedItem is not PeriodOption periodOption)
+            {
+                MessageBox.Show("取得期間を選択してください。");
+                return;
+            }
+
             ResetResultViews();
             SetFetchingState(true, "取得中...");
 
-            var period = "1y";
+            var period = periodOption.Value;
 
             var fetcherDir = FindFetcherDir();
             var scriptPath = Path.Combine(fetcherDir, "fetch_price_data.py");
@@ -169,6 +174,7 @@ namespace StockAnalyzer
         {
             FetchButton.IsEnabled = !isFetching;
             RefreshBacktestButton.IsEnabled = !isFetching && _currentAnalysisResult is not null;
+            PeriodComboBox.IsEnabled = !isFetching;
             SignalTypeComboBox.IsEnabled = !isFetching;
             EntryDelayTextBox.IsEnabled = !isFetching;
             HoldingBarsTextBox.IsEnabled = !isFetching;
@@ -179,6 +185,9 @@ namespace StockAnalyzer
 
         private void InitializeBacktestSettingsInputs()
         {
+            PeriodComboBox.ItemsSource = PeriodOptions.All;
+            PeriodComboBox.SelectedItem = PeriodOptions.All.First(x => x.Value == PeriodOptions.DefaultValue);
+
             SignalTypeComboBox.ItemsSource = _signalTypeOptions;
             SignalTypeComboBox.SelectedItem = _signalTypeOptions.First(x => x.Value == SignalType.Buy);
         }
