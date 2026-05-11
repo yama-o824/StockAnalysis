@@ -121,6 +121,14 @@
                                             Binding="{Binding SignalType}"
                                             ElementStyle="{StaticResource CenterCellStyle}"
                                             Width="70"/>
+                        <DataGridTextColumn Header="スコア"
+                                            Binding="{Binding Score}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="70"/>
+                        <DataGridTextColumn Header="ランク"
+                                            Binding="{Binding Rank}"
+                                            ElementStyle="{StaticResource CenterCellStyle}"
+                                            Width="70"/>
                         <DataGridTextColumn Header="エントリー日"
                                             Binding="{Binding EntryDate}"
                                             Width="100"/>
@@ -143,6 +151,9 @@
                                             Binding="{Binding ProfitLossRate, StringFormat=P2}"
                                             ElementStyle="{StaticResource NumericCellStyle}"
                                             Width="90"/>
+                        <DataGridTextColumn Header="スコア内訳"
+                                            Binding="{Binding ScoreBreakdown}"
+                                            Width="220"/>
                         <DataGridTextColumn Header="根拠"
                                             Binding="{Binding Reasons}"
                                             Width="*"/>
@@ -199,6 +210,17 @@
                                             Binding="{Binding Ma75DeviationRate, StringFormat=P2}"
                                             ElementStyle="{StaticResource NumericCellStyle}"
                                             Width="100"/>
+                        <DataGridTextColumn Header="スコア"
+                                            Binding="{Binding Score}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="70"/>
+                        <DataGridTextColumn Header="ランク"
+                                            Binding="{Binding Rank}"
+                                            ElementStyle="{StaticResource CenterCellStyle}"
+                                            Width="70"/>
+                        <DataGridTextColumn Header="スコア内訳"
+                                            Binding="{Binding ScoreBreakdown}"
+                                            Width="220"/>
                         <DataGridCheckBoxColumn Header="出来高支持"
                                                 Binding="{Binding HasVolumeSupport}"
                                                 Width="90"/>

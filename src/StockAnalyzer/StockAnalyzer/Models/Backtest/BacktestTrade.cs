@@ -1,4 +1,5 @@
 using StockAnalyzer.Models;
+using StockAnalyzer.Models.Analysis;
 
 namespace StockAnalyzer.Models.Backtest;
 
@@ -6,6 +7,7 @@ public sealed class BacktestTrade
 {
     public DateOnly SignalDate { get; init; }
     public SignalType SignalType { get; init; }
+    public SignalScore? SignalScore { get; init; }
     public IReadOnlyList<string> Reasons { get; init; } = [];
     public DateOnly EntryDate { get; init; }
     public double EntryPrice { get; init; }

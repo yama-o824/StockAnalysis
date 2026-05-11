@@ -33,6 +33,9 @@ public sealed class BacktestRunnerTests
         Assert.Equal(107.5d, trade.ExitPrice);
         Assert.Equal(5, trade.HoldingBars);
         Assert.Equal(["test"], trade.Reasons);
+        Assert.NotNull(trade.SignalScore);
+        Assert.Equal(80, trade.SignalScore.Total);
+        Assert.Equal(SignalRank.VeryStrong, trade.SignalScore.Rank);
         Assert.Equal(1, result.Summary.SignalCount);
         Assert.Equal(0, result.Summary.SkippedSignalCount);
     }
@@ -147,6 +150,22 @@ public sealed class BacktestRunnerTests
             Evaluation = new SignalEvaluation
             {
                 Reasons = ["test"]
+            },
+            Score = new SignalScore
+            {
+                Total = 80,
+                Rank = SignalRank.VeryStrong,
+                Breakdowns =
+                [
+                    new SignalScoreBreakdown
+                    {
+                        Key = "test",
+                        Label = "テスト",
+                        Points = 80,
+                        MaxPoints = 100,
+                        Reason = "test"
+                    }
+                ]
             }
         };
     }
