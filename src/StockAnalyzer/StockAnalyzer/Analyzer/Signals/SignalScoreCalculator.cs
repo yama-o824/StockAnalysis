@@ -98,8 +98,8 @@ public sealed class SignalScoreCalculator
     {
         return total switch
         {
-            >= 80 => SignalRank.VeryStrong,
-            >= 65 => SignalRank.Strong,
+            >= 90 => SignalRank.VeryStrong,
+            >= 75 => SignalRank.Strong,
             >= 50 => SignalRank.Normal,
             > 0 => SignalRank.Weak,
             _ => SignalRank.None

@@ -73,8 +73,9 @@ public sealed class SignalScoreCalculatorTests
     [InlineData(null, false, false, false, 0, SignalRank.None)]
     [InlineData(0.01d, false, false, false, 15, SignalRank.Weak)]
     [InlineData(0.06d, true, false, false, 55, SignalRank.Normal)]
-    [InlineData(0.06d, true, true, false, 80, SignalRank.VeryStrong)]
-    [InlineData(0.10d, true, false, true, 65, SignalRank.Strong)]
+    [InlineData(0.06d, true, false, true, 75, SignalRank.Strong)]
+    [InlineData(0.06d, true, true, false, 80, SignalRank.Strong)]
+    [InlineData(0.10d, true, false, true, 65, SignalRank.Normal)]
     public void Calculate_BuySignal_ReturnsRankByTotal(
         double? ma75DeviationRate,
         bool hasVolumeSupport,
