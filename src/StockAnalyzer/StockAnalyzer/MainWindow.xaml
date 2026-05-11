@@ -19,6 +19,11 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Label Content="銘柄" Width="48" VerticalAlignment="Center"/>
                 <TextBox x:Name="SymbolTextBox" TextWrapping="Wrap" Width="180" Height="24"/>
+                <Label Content="期間" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <ComboBox x:Name="PeriodComboBox"
+                          DisplayMemberPath="Label"
+                          Width="90"
+                          Height="24"/>
                 <Button x:Name="FetchButton" Content="取得" Click="FetchButton_Click" Width="64" Height="24" Margin="10,0,0,0"/>
                 <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="14,0,0,0"/>
                 <ProgressBar x:Name="LoadingBar"
