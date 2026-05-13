@@ -115,10 +115,7 @@ namespace StockAnalyzer
                     .Select(PriceAnalysisRow.From)
                     .ToList();
 
-                SignalsDataGrid.ItemsSource = analysisResult.Signals
-                    .Select(SignalViewRow.From)
-                    .ToList();
-
+                UpdateSignalResults();
                 UpdateBacktestResult(backtestSettings);
                 UpdateSymbolHistory(symbol);
 
@@ -194,6 +191,9 @@ namespace StockAnalyzer
             PeriodComboBox.ItemsSource = PeriodOptions.All;
             PeriodComboBox.SelectedItem = PeriodOptions.All.First(x => x.Value == PeriodOptions.DefaultValue);
 
+            ScoreFilterComboBox.ItemsSource = ScoreFilterOptions.All;
+            ScoreFilterComboBox.SelectedItem = ScoreFilterOptions.All.First(x => x.MinimumScore is null);
+
             SignalTypeComboBox.ItemsSource = _signalTypeOptions;
             SignalTypeComboBox.SelectedItem = _signalTypeOptions.First(x => x.Value == SignalType.Buy);
         }
@@ -222,6 +222,22 @@ namespace StockAnalyzer
             {
                 // 履歴保存に失敗しても、取得済みの分析結果表示は成功扱いにする。
             }
+        }
+
+        private void ScoreFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_currentAnalysisResult is null)
+            {
+                return;
+            }
+
+            if (!TryCreateBacktestSettings(out var backtestSettings))
+            {
+                return;
+            }
+
+            UpdateSignalResults();
+            UpdateBacktestResult(backtestSettings);
         }
 
         private bool TryCreateBacktestSettings(out BacktestSettings settings)
@@ -267,6 +283,20 @@ namespace StockAnalyzer
 
         private sealed record SignalTypeOption(SignalType Value, string Label);
 
+        private void UpdateSignalResults()
+        {
+            if (_currentAnalysisResult is null)
+            {
+                SignalsDataGrid.ItemsSource = null;
+                return;
+            }
+
+            SignalsDataGrid.ItemsSource = _currentAnalysisResult.Signals
+                .Where(x => MatchesScoreFilter(x.Score?.Total))
+                .Select(SignalViewRow.From)
+                .ToList();
+        }
+
         private void UpdateBacktestResult(BacktestSettings settings)
         {
             if (_currentAnalysisResult is null)
@@ -278,10 +308,21 @@ namespace StockAnalyzer
 
             BacktestSummaryPanel.DataContext = BacktestSummaryViewModel.From(backtestResult);
             BacktestDataGrid.ItemsSource = backtestResult.Trades
+                .Where(x => MatchesScoreFilter(x.SignalScore?.Total))
                 .Select(BacktestViewRow.From)
                 .ToList();
 
             ShowResultViews();
+        }
+
+        private bool MatchesScoreFilter(int? score)
+        {
+            if (ScoreFilterComboBox.SelectedItem is not ScoreFilterOption option)
+            {
+                return true;
+            }
+
+            return ScoreFilter.Matches(score, option.MinimumScore);
         }
 
         private void ResetResultViews()
