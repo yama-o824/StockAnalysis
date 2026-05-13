@@ -121,6 +121,45 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+                <TextBlock x:Name="BacktestScoreBandSummaryTitle"
+                           Text="スコア別集計"
+                           Margin="0,8,0,4"
+                           FontWeight="Bold"
+                           Visibility="Collapsed"/>
+                <DataGrid x:Name="BacktestScoreBandSummaryDataGrid"
+                          Margin="0,0,0,8"
+                          IsReadOnly="True"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserReorderColumns="False"
+                          Visibility="Collapsed">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="スコア帯"
+                                            Binding="{Binding ScoreBand}"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="対象取引数"
+                                            Binding="{Binding TradeCount, StringFormat=N0}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="勝率"
+                                            Binding="{Binding WinRate, StringFormat=P2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="平均損益率"
+                                            Binding="{Binding AverageProfitLossRate, StringFormat=P2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="110"/>
+                        <DataGridTextColumn Header="平均勝ち率"
+                                            Binding="{Binding AverageWinRate, StringFormat=P2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="110"/>
+                        <DataGridTextColumn Header="平均負け率"
+                                            Binding="{Binding AverageLossRate, StringFormat=P2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="110"/>
+                    </DataGrid.Columns>
+                </DataGrid>
                 <DataGrid x:Name="BacktestDataGrid"
                           IsReadOnly="True"
                           AutoGenerateColumns="False"
