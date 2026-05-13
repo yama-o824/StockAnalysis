@@ -49,6 +49,7 @@
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\VolumeSupportEvaluator.cs" Link="Source\Analyzer\Signals\VolumeSupportEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Models\Backtest\BacktestSettings.cs" Link="Source\Models\Backtest\BacktestSettings.cs" />
     <Compile Include="..\StockAnalyzer\Models\Backtest\BacktestScoreBand.cs" Link="Source\Models\Backtest\BacktestScoreBand.cs" />
+    <Compile Include="..\StockAnalyzer\Models\Backtest\BacktestScoreBandSummary.cs" Link="Source\Models\Backtest\BacktestScoreBandSummary.cs" />
     <Compile Include="..\StockAnalyzer\Models\Backtest\BacktestSummary.cs" Link="Source\Models\Backtest\BacktestSummary.cs" />
     <Compile Include="..\StockAnalyzer\Models\Backtest\BacktestTrade.cs" Link="Source\Models\Backtest\BacktestTrade.cs" />
     <Compile Include="..\StockAnalyzer\Models\Backtest\BacktestResult.cs" Link="Source\Models\Backtest\BacktestResult.cs" />
