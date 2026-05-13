@@ -18,7 +18,11 @@
         <StackPanel DockPanel.Dock="Top">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Label Content="銘柄" Width="48" VerticalAlignment="Center"/>
-                <TextBox x:Name="SymbolTextBox" TextWrapping="Wrap" Width="180" Height="24"/>
+                <ComboBox x:Name="SymbolComboBox"
+                          IsEditable="True"
+                          IsTextSearchEnabled="True"
+                          Width="180"
+                          Height="24"/>
                 <Label Content="期間" Margin="12,0,0,0" VerticalAlignment="Center"/>
                 <ComboBox x:Name="PeriodComboBox"
                           DisplayMemberPath="Label"

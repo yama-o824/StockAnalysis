@@ -22,6 +22,7 @@ namespace StockAnalyzer
     {
         private readonly StockAnalysisService _stockAnalysisService = new();
         private readonly BacktestRunner _backtestRunner = new();
+        private readonly SymbolHistoryStore _symbolHistoryStore = new();
         private AnalysisResult? _currentAnalysisResult;
         private readonly IReadOnlyList<SignalTypeOption> _signalTypeOptions =
         [
@@ -32,17 +33,20 @@ namespace StockAnalyzer
         {
             InitializeComponent();
             InitializeBacktestSettingsInputs();
+            InitializeSymbolHistory();
             ResetResultViews();
         }
 
         private async void FetchButton_Click(object sender, RoutedEventArgs e)
         {
-            var symbol = SymbolTextBox.Text.Trim();
+            var symbol = SymbolHistory.Normalize(SymbolComboBox.Text);
             if (string.IsNullOrWhiteSpace(symbol))
             {
                 MessageBox.Show("銘柄を入力してください");
                 return;
             }
+
+            SymbolComboBox.Text = symbol;
 
             if (!TryCreateBacktestSettings(out var backtestSettings))
             {
@@ -116,6 +120,7 @@ namespace StockAnalyzer
                     .ToList();
 
                 UpdateBacktestResult(backtestSettings);
+                UpdateSymbolHistory(symbol);
 
                 SetFetchingState(false, $"取得完了: {rows.Count}件");
             }
@@ -174,6 +179,7 @@ namespace StockAnalyzer
         {
             FetchButton.IsEnabled = !isFetching;
             RefreshBacktestButton.IsEnabled = !isFetching && _currentAnalysisResult is not null;
+            SymbolComboBox.IsEnabled = !isFetching;
             PeriodComboBox.IsEnabled = !isFetching;
             SignalTypeComboBox.IsEnabled = !isFetching;
             EntryDelayTextBox.IsEnabled = !isFetching;
@@ -190,6 +196,32 @@ namespace StockAnalyzer
 
             SignalTypeComboBox.ItemsSource = _signalTypeOptions;
             SignalTypeComboBox.SelectedItem = _signalTypeOptions.First(x => x.Value == SignalType.Buy);
+        }
+
+        private void InitializeSymbolHistory()
+        {
+            try
+            {
+                SymbolComboBox.ItemsSource = _symbolHistoryStore.Load();
+            }
+            catch
+            {
+                SymbolComboBox.ItemsSource = Array.Empty<string>();
+            }
+        }
+
+        private void UpdateSymbolHistory(string symbol)
+        {
+            try
+            {
+                var symbols = _symbolHistoryStore.Add(symbol);
+                SymbolComboBox.ItemsSource = symbols;
+                SymbolComboBox.Text = symbol;
+            }
+            catch
+            {
+                // 履歴保存に失敗しても、取得済みの分析結果表示は成功扱いにする。
+            }
         }
 
         private bool TryCreateBacktestSettings(out BacktestSettings settings)

@@ -35,6 +35,8 @@
     <Compile Include="..\StockAnalyzer\Models\Analysis\SignalScoreBreakdown.cs" Link="Source\Models\Analysis\SignalScoreBreakdown.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\PeriodOption.cs" Link="Source\Presentation\PeriodOption.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\PeriodOptions.cs" Link="Source\Presentation\PeriodOptions.cs" />
+    <Compile Include="..\StockAnalyzer\Services\SymbolHistory.cs" Link="Source\Services\SymbolHistory.cs" />
+    <Compile Include="..\StockAnalyzer\Services\SymbolHistoryStore.cs" Link="Source\Services\SymbolHistoryStore.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" Link="Source\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\PullbackEvaluator.cs" Link="Source\Analyzer\Signals\PullbackEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\SignalScoreCalculator.cs" Link="Source\Analyzer\Signals\SignalScoreCalculator.cs" />
