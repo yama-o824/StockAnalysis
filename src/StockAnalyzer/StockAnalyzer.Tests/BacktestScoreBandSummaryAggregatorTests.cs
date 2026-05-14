@@ -28,10 +28,10 @@ public sealed class BacktestScoreBandSummaryAggregatorTests
 
         Assert.Collection(
             summaries,
-            x => AssertSummary(x, "なし", 5, 0.60d, 0.09d, 0.20d, -0.075d),
-            x => AssertSummary(x, "50以上", 3, 2d / 3d, 0.13333333333333333d, 0.25d, -0.10d),
+            x => AssertSummary(x, "90以上", 1, 1.00d, 0.30d, 0.30d, 0d),
             x => AssertSummary(x, "75以上", 2, 0.50d, 0.10d, 0.30d, -0.10d),
-            x => AssertSummary(x, "90以上", 1, 1.00d, 0.30d, 0.30d, 0d));
+            x => AssertSummary(x, "50以上", 3, 2d / 3d, 0.13333333333333333d, 0.25d, -0.10d),
+            x => AssertSummary(x, "なし", 5, 0.60d, 0.09d, 0.20d, -0.075d));
     }
 
     [Fact(DisplayName = "該当取引がないスコア帯は0で集計する")]
