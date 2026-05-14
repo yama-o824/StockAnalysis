@@ -7,10 +7,10 @@ public sealed class BacktestScoreBand
 
     public static IReadOnlyList<BacktestScoreBand> Defaults { get; } =
     [
-        new BacktestScoreBand { Label = "なし" },
-        new BacktestScoreBand { Label = "50以上", MinimumScore = 50 },
+        new BacktestScoreBand { Label = "90以上", MinimumScore = 90 },
         new BacktestScoreBand { Label = "75以上", MinimumScore = 75 },
-        new BacktestScoreBand { Label = "90以上", MinimumScore = 90 }
+        new BacktestScoreBand { Label = "50以上", MinimumScore = 50 },
+        new BacktestScoreBand { Label = "なし" }
     ];
 
     public bool Matches(BacktestTrade trade)

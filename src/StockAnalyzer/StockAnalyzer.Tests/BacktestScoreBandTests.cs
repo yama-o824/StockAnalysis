@@ -48,7 +48,7 @@ public sealed class BacktestScoreBandTests
         Assert.False(sut.Matches(CreateTrade(null)));
     }
 
-    [Fact(DisplayName = "既定のスコア帯は条件なし、50以上、75以上、90以上の順で返す")]
+    [Fact(DisplayName = "既定のスコア帯は90以上、75以上、50以上、条件なしの順で返す")]
     public void Defaults_ReturnsScoreBandsInDisplayOrder()
     {
         var defaults = BacktestScoreBand.Defaults;
@@ -57,13 +57,8 @@ public sealed class BacktestScoreBandTests
             defaults,
             x =>
             {
-                Assert.Equal("なし", x.Label);
-                Assert.Null(x.MinimumScore);
-            },
-            x =>
-            {
-                Assert.Equal("50以上", x.Label);
-                Assert.Equal(50, x.MinimumScore);
+                Assert.Equal("90以上", x.Label);
+                Assert.Equal(90, x.MinimumScore);
             },
             x =>
             {
@@ -72,8 +67,13 @@ public sealed class BacktestScoreBandTests
             },
             x =>
             {
-                Assert.Equal("90以上", x.Label);
-                Assert.Equal(90, x.MinimumScore);
+                Assert.Equal("50以上", x.Label);
+                Assert.Equal(50, x.MinimumScore);
+            },
+            x =>
+            {
+                Assert.Equal("なし", x.Label);
+                Assert.Null(x.MinimumScore);
             });
     }
 
