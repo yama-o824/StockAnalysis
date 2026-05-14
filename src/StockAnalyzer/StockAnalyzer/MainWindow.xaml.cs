@@ -22,6 +22,7 @@ namespace StockAnalyzer
     {
         private readonly StockAnalysisService _stockAnalysisService = new();
         private readonly BacktestRunner _backtestRunner = new();
+        private readonly BacktestScoreBandSummaryAggregator _backtestScoreBandSummaryAggregator = new();
         private readonly SymbolHistoryStore _symbolHistoryStore = new();
         private AnalysisResult? _currentAnalysisResult;
         private readonly IReadOnlyList<SignalTypeOption> _signalTypeOptions =
@@ -307,6 +308,10 @@ namespace StockAnalyzer
             var backtestResult = _backtestRunner.Run(_currentAnalysisResult, settings);
 
             BacktestSummaryPanel.DataContext = BacktestSummaryViewModel.From(backtestResult);
+            BacktestScoreBandSummaryDataGrid.ItemsSource = _backtestScoreBandSummaryAggregator
+                .Create(backtestResult)
+                .Select(BacktestScoreBandSummaryViewRow.From)
+                .ToList();
             BacktestDataGrid.ItemsSource = backtestResult.Trades
                 .Where(x => MatchesScoreFilter(x.SignalScore?.Total))
                 .Select(BacktestViewRow.From)
@@ -330,10 +335,13 @@ namespace StockAnalyzer
             PricesDataGrid.ItemsSource = null;
             SignalsDataGrid.ItemsSource = null;
             BacktestDataGrid.ItemsSource = null;
+            BacktestScoreBandSummaryDataGrid.ItemsSource = null;
             BacktestSummaryPanel.DataContext = null;
 
             BacktestPlaceholderText.Visibility = Visibility.Visible;
             BacktestSummaryPanel.Visibility = Visibility.Collapsed;
+            BacktestScoreBandSummaryTitle.Visibility = Visibility.Collapsed;
+            BacktestScoreBandSummaryDataGrid.Visibility = Visibility.Collapsed;
             BacktestDataGrid.Visibility = Visibility.Collapsed;
             RefreshBacktestButton.IsEnabled = _currentAnalysisResult is not null;
         }
@@ -342,6 +350,8 @@ namespace StockAnalyzer
         {
             BacktestPlaceholderText.Visibility = Visibility.Collapsed;
             BacktestSummaryPanel.Visibility = Visibility.Visible;
+            BacktestScoreBandSummaryTitle.Visibility = Visibility.Visible;
+            BacktestScoreBandSummaryDataGrid.Visibility = Visibility.Visible;
             BacktestDataGrid.Visibility = Visibility.Visible;
         }
 
