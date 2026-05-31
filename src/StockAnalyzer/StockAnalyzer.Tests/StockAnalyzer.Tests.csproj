@@ -43,6 +43,7 @@
     <Compile Include="..\StockAnalyzer\Presentation\SignalScoreTextFormatter.cs" Link="Source\Presentation\SignalScoreTextFormatter.cs" />
     <Compile Include="..\StockAnalyzer\Services\SymbolHistory.cs" Link="Source\Services\SymbolHistory.cs" />
     <Compile Include="..\StockAnalyzer\Services\SymbolHistoryStore.cs" Link="Source\Services\SymbolHistoryStore.cs" />
+    <Compile Include="..\StockAnalyzer\Services\AnalysisHistoryCsvFormat.cs" Link="Source\Services\AnalysisHistoryCsvFormat.cs" />
     <Compile Include="..\StockAnalyzer\Services\AnalysisHistoryCsvStore.cs" Link="Source\Services\AnalysisHistoryCsvStore.cs" />
     <Compile Include="..\StockAnalyzer\Services\AnalysisHistoryRecordFactory.cs" Link="Source\Services\AnalysisHistoryRecordFactory.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" Link="Source\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" />
