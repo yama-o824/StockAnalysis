@@ -42,6 +42,7 @@
     <Compile Include="..\StockAnalyzer\Presentation\BacktestScoreBandSummaryViewRow.cs" Link="Source\Presentation\BacktestScoreBandSummaryViewRow.cs" />
     <Compile Include="..\StockAnalyzer\Services\SymbolHistory.cs" Link="Source\Services\SymbolHistory.cs" />
     <Compile Include="..\StockAnalyzer\Services\SymbolHistoryStore.cs" Link="Source\Services\SymbolHistoryStore.cs" />
+    <Compile Include="..\StockAnalyzer\Services\AnalysisHistoryRecordFactory.cs" Link="Source\Services\AnalysisHistoryRecordFactory.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" Link="Source\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\PullbackEvaluator.cs" Link="Source\Analyzer\Signals\PullbackEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\SignalScoreCalculator.cs" Link="Source\Analyzer\Signals\SignalScoreCalculator.cs" />
