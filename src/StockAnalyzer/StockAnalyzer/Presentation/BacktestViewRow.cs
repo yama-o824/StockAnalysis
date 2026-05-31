@@ -29,7 +29,7 @@ public sealed class BacktestViewRow
             SignalType = trade.SignalType,
             Score = trade.SignalScore?.Total,
             Rank = trade.SignalScore?.Rank,
-            ScoreBreakdown = FormatScoreBreakdown(trade.SignalScore),
+            ScoreBreakdown = SignalScoreTextFormatter.FormatBreakdown(trade.SignalScore),
             EntryDate = trade.EntryDate.ToString("yyyy-MM-dd"),
             EntryPrice = trade.EntryPrice,
             ExitDate = trade.ExitDate.ToString("yyyy-MM-dd"),
@@ -38,17 +38,5 @@ public sealed class BacktestViewRow
             ProfitLossRate = trade.ProfitLossRate,
             Reasons = string.Join(" / ", trade.Reasons)
         };
-    }
-
-    private static string FormatScoreBreakdown(SignalScore? score)
-    {
-        if (score is null)
-        {
-            return string.Empty;
-        }
-
-        return string.Join(
-            " / ",
-            score.Breakdowns.Select(x => $"{x.Label} {x.Points}/{x.MaxPoints}"));
     }
 }

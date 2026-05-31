@@ -1,14 +1,10 @@
 ﻿using StockAnalyzer.Models;
 using StockAnalyzer.Models.Analysis;
-using StockAnalyzer.Mappers;
 using StockAnalyzer.Presentation;
 using StockAnalyzer.Services;
 using StockAnalyzer.Services.Backtest;
 using StockAnalyzer.Models.Backtest;
-using System.Diagnostics;
-using System.IO;
 using System.Text;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,6 +17,7 @@ namespace StockAnalyzer
     public partial class MainWindow : Window
     {
         private readonly StockAnalysisService _stockAnalysisService = new();
+        private readonly PriceDataFetchService _priceDataFetchService = new();
         private readonly BacktestRunner _backtestRunner = new();
         private readonly BacktestScoreBandSummaryAggregator _backtestScoreBandSummaryAggregator = new();
         private readonly SymbolHistoryStore _symbolHistoryStore = new();
@@ -69,51 +66,13 @@ namespace StockAnalyzer
 
             var period = periodOption.Value;
 
-            var fetcherDir = FindFetcherDir();
-            var scriptPath = Path.Combine(fetcherDir, "fetch_price_data.py");
-            var venvPython = Path.Combine(fetcherDir, ".venv", "Scripts", "python.exe");
-            var pythonExe = File.Exists(venvPython) ? venvPython : "python";
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = pythonExe,
-                Arguments = $"\"{scriptPath}\" {symbol} {period}",
-                WorkingDirectory = fetcherDir,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
-            };
-
             string? stderr = null;
             int? exitCode = null;
 
             try
             {
-                using var p = Process.Start(psi) ?? throw new Exception("Process start failed.");
-
-                var stdout = await p.StandardOutput.ReadToEndAsync();
-                stderr = await p.StandardError.ReadToEndAsync();
-                await p.WaitForExitAsync();
-                exitCode = p.ExitCode;
-
-                if (p.ExitCode != 0)
-                {
-                    SetFetchingState(false, "取得失敗");
-                    ShowFriendlyError(new Exception("Python process failed."), stderr, exitCode);
-                    return;
-                }
-
-                var rows = JsonSerializer.Deserialize<List<PriceRow>>(stdout, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }) ?? [];
-                rows = [.. rows.OrderBy(r => r.Date)];
-
-                var priceBars = rows.Select(PriceBarMapper.From).ToList();
-                var analysisResult = _stockAnalysisService.Analyze(priceBars);
+                var fetchResult = await _priceDataFetchService.FetchAsync(symbol, period);
+                var analysisResult = _stockAnalysisService.Analyze(fetchResult.PriceBars);
                 _currentAnalysisResult = analysisResult;
                 _currentSymbol = symbol;
                 _currentRequestedPeriod = period;
@@ -126,7 +85,18 @@ namespace StockAnalyzer
                 UpdateBacktestResult(backtestSettings);
                 UpdateSymbolHistory(symbol);
 
-                SetFetchingState(false, $"取得完了: {rows.Count}件");
+                SetFetchingState(false, $"取得完了: {fetchResult.Rows.Count}件");
+            }
+            catch (PriceDataFetchException ex)
+            {
+                stderr = ex.Stderr;
+                exitCode = ex.ExitCode;
+                _currentAnalysisResult = null;
+                _currentSymbol = string.Empty;
+                _currentRequestedPeriod = string.Empty;
+                ResetResultViews();
+                SetFetchingState(false, "取得失敗");
+                ShowFriendlyError(ex, stderr, exitCode);
             }
             catch (Exception ex)
             {
@@ -202,24 +172,6 @@ namespace StockAnalyzer
             {
                 ShowFriendlyError(ex);
             }
-        }
-
-        static string FindFetcherDir()
-        {
-            var dir = new DirectoryInfo(AppContext.BaseDirectory);
-
-            while (dir != null)
-            {
-                var candidate = Path.Combine(dir.FullName, "tools", "fetcher", "fetch_price_data.py");
-                if (File.Exists(candidate))
-                {
-                    return Path.GetDirectoryName(candidate)!;
-                }
-
-                dir = dir.Parent;
-            }
-
-            throw new DirectoryNotFoundException("tools/fetcher/fetch_price_data.py が見つかりません。");
         }
 
         private void SetFetchingState(bool isFetching, string? status = null)

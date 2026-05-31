@@ -50,23 +50,11 @@ public sealed class SignalViewRow
             Ma75DeviationRate = result.Evaluation.Ma75DeviationRate,
             Score = result.Score?.Total,
             Rank = result.Score?.Rank,
-            ScoreBreakdown = FormatScoreBreakdown(result.Score),
+            ScoreBreakdown = SignalScoreTextFormatter.FormatBreakdown(result.Score),
             HasVolumeSupport = result.Evaluation.HasVolumeSupport,
             IsPullbackBounce = result.Evaluation.IsPullbackBounce,
             HasStrongBullishCandle = result.Evaluation.HasStrongBullishCandle,
             Reasons = string.Join(" / ", result.Evaluation.Reasons)
         };
-    }
-
-    private static string FormatScoreBreakdown(SignalScore? score)
-    {
-        if (score is null)
-        {
-            return string.Empty;
-        }
-
-        return string.Join(
-            " / ",
-            score.Breakdowns.Select(x => $"{x.Label} {x.Points}/{x.MaxPoints}"));
     }
 }
