@@ -24,7 +24,11 @@ namespace StockAnalyzer
         private readonly BacktestRunner _backtestRunner = new();
         private readonly BacktestScoreBandSummaryAggregator _backtestScoreBandSummaryAggregator = new();
         private readonly SymbolHistoryStore _symbolHistoryStore = new();
+        private readonly AnalysisHistoryRecordFactory _analysisHistoryRecordFactory = new();
+        private readonly AnalysisHistoryCsvStore _analysisHistoryCsvStore = new();
         private AnalysisResult? _currentAnalysisResult;
+        private string _currentSymbol = string.Empty;
+        private string _currentRequestedPeriod = string.Empty;
         private readonly IReadOnlyList<SignalTypeOption> _signalTypeOptions =
         [
             new(SignalType.Buy, "買い"),
@@ -111,6 +115,8 @@ namespace StockAnalyzer
                 var priceBars = rows.Select(PriceBarMapper.From).ToList();
                 var analysisResult = _stockAnalysisService.Analyze(priceBars);
                 _currentAnalysisResult = analysisResult;
+                _currentSymbol = symbol;
+                _currentRequestedPeriod = period;
 
                 PricesDataGrid.ItemsSource = analysisResult.Bars
                     .Select(PriceAnalysisRow.From)
@@ -125,9 +131,52 @@ namespace StockAnalyzer
             catch (Exception ex)
             {
                 _currentAnalysisResult = null;
+                _currentSymbol = string.Empty;
+                _currentRequestedPeriod = string.Empty;
                 ResetResultViews();
                 SetFetchingState(false, "取得失敗");
                 ShowFriendlyError(ex, stderr, exitCode);
+            }
+        }
+
+        private void SaveAnalysisHistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentAnalysisResult is null)
+            {
+                MessageBox.Show("先に価格データを取得してください。");
+                return;
+            }
+
+            var records = _analysisHistoryRecordFactory.Create(
+                _currentSymbol,
+                _currentRequestedPeriod,
+                DateTimeOffset.Now,
+                Guid.NewGuid().ToString("N"),
+                _currentAnalysisResult);
+
+            if (records.Count == 0)
+            {
+                MessageBox.Show("保存対象のシグナルがありません。");
+                return;
+            }
+
+            try
+            {
+                _analysisHistoryCsvStore.Append(records);
+                StatusText.Text = $"分析結果を保存しました: {records.Count}件";
+                MessageBox.Show(
+                    $"分析結果を保存しました。\n\n保存先: {_analysisHistoryCsvStore.FilePath}",
+                    "保存完了",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"保存に失敗しました。\n\n--- 詳細 ---\n{ex.Message}",
+                    "保存エラー",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
@@ -177,6 +226,7 @@ namespace StockAnalyzer
         {
             FetchButton.IsEnabled = !isFetching;
             RefreshBacktestButton.IsEnabled = !isFetching && _currentAnalysisResult is not null;
+            SaveAnalysisHistoryButton.IsEnabled = !isFetching && _currentAnalysisResult is not null;
             SymbolComboBox.IsEnabled = !isFetching;
             PeriodComboBox.IsEnabled = !isFetching;
             SignalTypeComboBox.IsEnabled = !isFetching;
@@ -344,6 +394,7 @@ namespace StockAnalyzer
             BacktestScoreBandSummaryDataGrid.Visibility = Visibility.Collapsed;
             BacktestDataGrid.Visibility = Visibility.Collapsed;
             RefreshBacktestButton.IsEnabled = _currentAnalysisResult is not null;
+            SaveAnalysisHistoryButton.IsEnabled = _currentAnalysisResult is not null;
         }
 
         private void ShowResultViews()
