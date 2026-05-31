@@ -25,6 +25,7 @@
     <Compile Include="..\StockAnalyzer\Models\SignalType.cs" Link="Source\Models\SignalType.cs" />
     <Compile Include="..\StockAnalyzer\Models\Market\PriceBar.cs" Link="Source\Models\Market\PriceBar.cs" />
     <Compile Include="..\StockAnalyzer\Models\Analysis\AnalysisBar.cs" Link="Source\Models\Analysis\AnalysisBar.cs" />
+    <Compile Include="..\StockAnalyzer\Models\Analysis\AnalysisHistoryRecord.cs" Link="Source\Models\Analysis\AnalysisHistoryRecord.cs" />
     <Compile Include="..\StockAnalyzer\Models\Analysis\AnalysisResult.cs" Link="Source\Models\Analysis\AnalysisResult.cs" />
     <Compile Include="..\StockAnalyzer\Models\Analysis\CandleMetrics.cs" Link="Source\Models\Analysis\CandleMetrics.cs" />
     <Compile Include="..\StockAnalyzer\Models\Analysis\SignalCandidate.cs" Link="Source\Models\Analysis\SignalCandidate.cs" />
