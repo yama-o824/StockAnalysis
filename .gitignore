@@ -56,3 +56,4 @@ nunit-*.xml
 .vs
 *.csproj.user
 .DS_Store
+/.codex/
