@@ -1,4 +1,5 @@
 using StockAnalyzer.Models.Analysis;
+using StockAnalyzer.Presentation;
 
 namespace StockAnalyzer.Services;
 
@@ -70,20 +71,8 @@ public sealed class AnalysisHistoryRecordFactory
             Ma75DeviationRate = signal.Evaluation.Ma75DeviationRate,
             Score = signal.Score?.Total,
             Rank = signal.Score?.Rank,
-            ScoreBreakdown = FormatScoreBreakdown(signal.Score),
+            ScoreBreakdown = SignalScoreTextFormatter.FormatBreakdown(signal.Score),
             Reasons = string.Join(" / ", signal.Evaluation.Reasons)
         };
-    }
-
-    private static string FormatScoreBreakdown(SignalScore? score)
-    {
-        if (score is null)
-        {
-            return string.Empty;
-        }
-
-        return string.Join(
-            " / ",
-            score.Breakdowns.Select(x => $"{x.Label} {x.Points}/{x.MaxPoints}"));
     }
 }
