@@ -77,6 +77,9 @@
     <Compile Include="..\StockAnalyzer\Services\Backtest\BacktestScoreBandSummaryAggregator.cs" Link="Source\Services\Backtest\BacktestScoreBandSummaryAggregator.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\MainWindowOperationResult.cs" Link="Source\ViewModels\MainWindowOperationResult.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\MainWindowViewModel.cs" Link="Source\ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\ObservableObject.cs" Link="Source\ViewModels\ObservableObject.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\RelayCommand.cs" Link="Source\ViewModels\RelayCommand.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\AsyncRelayCommand.cs" Link="Source\ViewModels\AsyncRelayCommand.cs" />
   </ItemGroup>
 
 </Project>
