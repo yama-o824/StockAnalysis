@@ -51,6 +51,9 @@ public sealed class MainWindowViewModel : ObservableObject
         _selectedPeriod = AvailablePeriodOptions.First(x => x.Value == Presentation.PeriodOptions.DefaultValue);
         _selectedScoreFilter = AvailableScoreFilterOptions.First(x => x.MinimumScore is null);
         _selectedSignalType = SignalTypeOptions.First(x => x.Value == SignalType.Buy);
+        FetchCommand = new AsyncRelayCommand(FetchFromInputAsync, () => !IsFetching);
+        RefreshBacktestCommand = new RelayCommand(RefreshBacktestFromInput, () => CanRefreshBacktest);
+        SaveAnalysisHistoryCommand = new RelayCommand(SaveAnalysisHistoryFromInput, () => CanSaveAnalysisHistory);
     }
 
     private string _symbolText = string.Empty;
@@ -66,22 +69,52 @@ public sealed class MainWindowViewModel : ObservableObject
     public string SymbolText
     {
         get => _symbolText;
-        set => SetProperty(ref _symbolText, value);
+        set
+        {
+            if (SetProperty(ref _symbolText, value))
+            {
+                FetchCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
     public PeriodOption? SelectedPeriod
     {
         get => _selectedPeriod;
-        set => SetProperty(ref _selectedPeriod, value);
+        set
+        {
+            if (SetProperty(ref _selectedPeriod, value))
+            {
+                FetchCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
     public SignalTypeOption? SelectedSignalType
     {
         get => _selectedSignalType;
-        set => SetProperty(ref _selectedSignalType, value);
+        set
+        {
+            if (SetProperty(ref _selectedSignalType, value))
+            {
+                RefreshBacktestCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
     public ScoreFilterOption? SelectedScoreFilter
     {
         get => _selectedScoreFilter;
-        set => SetProperty(ref _selectedScoreFilter, value);
+        set
+        {
+            if (SetProperty(ref _selectedScoreFilter, value))
+            {
+                RefreshSignals(GetSelectedScoreFilterOption());
+                if (CurrentAnalysisResult is not null && TryCreateBacktestSettings(out var backtestSettings, notifyOnError: false))
+                {
+                    RefreshBacktest(backtestSettings, GetSelectedScoreFilterOption(), StatusText);
+                }
+
+                RaiseStateChanged();
+            }
+        }
     }
     public string EntryDelayText
     {
@@ -105,12 +138,17 @@ public sealed class MainWindowViewModel : ObservableObject
     public IReadOnlyList<BacktestViewRow> BacktestRows { get; private set; } = [];
     public bool CanRefreshBacktest => !IsFetching && CurrentAnalysisResult is not null;
     public bool CanSaveAnalysisHistory => !IsFetching && CurrentAnalysisResult is not null;
+    public AsyncRelayCommand FetchCommand { get; }
+    public RelayCommand RefreshBacktestCommand { get; }
+    public RelayCommand SaveAnalysisHistoryCommand { get; }
+    public event EventHandler<UserMessageRequestedEventArgs>? MessageRequested;
 
     public void BeginFetch()
     {
         ResetResults();
         IsFetching = true;
         StatusText = "取得中...";
+        RaiseStateChanged();
     }
 
     public void ResetResults()
@@ -123,17 +161,20 @@ public sealed class MainWindowViewModel : ObservableObject
         BacktestSummary = null;
         BacktestScoreBandSummaryRows = [];
         BacktestRows = [];
+        RaiseStateChanged();
     }
 
     public void SetStatus(string statusText)
     {
         StatusText = statusText;
+        OnPropertyChanged(nameof(StatusText));
     }
 
     public void EndFetch(string statusText)
     {
         IsFetching = false;
         StatusText = statusText;
+        RaiseStateChanged();
     }
 
     public async Task<MainWindowOperationResult> FetchAsync(
@@ -270,5 +311,176 @@ public sealed class MainWindowViewModel : ObservableObject
                 userMessage: $"保存に失敗しました。\n\n--- 詳細 ---\n{ex.Message}",
                 exception: ex);
         }
+    }
+
+    private async Task FetchFromInputAsync()
+    {
+        var symbol = SymbolHistory.Normalize(SymbolText);
+        if (string.IsNullOrWhiteSpace(symbol))
+        {
+            RequestMessage("銘柄を入力してください", "エラー", UserMessageKind.Warning);
+            return;
+        }
+
+        SymbolText = symbol;
+
+        if (SelectedPeriod is null)
+        {
+            RequestMessage("取得期間を選択してください。", "エラー", UserMessageKind.Warning);
+            return;
+        }
+
+        if (!TryCreateBacktestSettings(out var backtestSettings))
+        {
+            return;
+        }
+
+        var scoreFilterOption = GetSelectedScoreFilterOption();
+        var result = await FetchAsync(symbol, SelectedPeriod.Value, scoreFilterOption);
+
+        if (!result.Succeeded)
+        {
+            RequestFailureMessage(result);
+            return;
+        }
+
+        var backtestResult = RefreshBacktest(
+            backtestSettings,
+            scoreFilterOption,
+            StatusText);
+
+        if (!backtestResult.Succeeded)
+        {
+            RequestFailureMessage(backtestResult);
+        }
+    }
+
+    private void RefreshBacktestFromInput()
+    {
+        if (!TryCreateBacktestSettings(out var backtestSettings))
+        {
+            return;
+        }
+
+        var result = RefreshBacktest(
+            backtestSettings,
+            GetSelectedScoreFilterOption());
+
+        if (!result.Succeeded)
+        {
+            RequestFailureMessage(result);
+        }
+    }
+
+    private void SaveAnalysisHistoryFromInput()
+    {
+        var result = SaveAnalysisHistory();
+
+        if (!result.Succeeded)
+        {
+            RequestFailureMessage(result, "保存エラー");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.UserMessage))
+        {
+            RequestMessage(result.UserMessage, "保存完了", UserMessageKind.Information);
+        }
+    }
+
+    private bool TryCreateBacktestSettings(
+        out BacktestSettings settings,
+        bool notifyOnError = true)
+    {
+        settings = default!;
+
+        if (SelectedSignalType is null)
+        {
+            if (notifyOnError)
+            {
+                RequestMessage("対象シグナルを選択してください。", "エラー", UserMessageKind.Warning);
+            }
+            return false;
+        }
+
+        if (!TryParsePositiveInt(EntryDelayText, "エントリーまでの営業日数", out var entryDelayBars, notifyOnError))
+        {
+            return false;
+        }
+
+        if (!TryParsePositiveInt(HoldingBarsText, "保有営業日数", out var exitAfterBars, notifyOnError))
+        {
+            return false;
+        }
+
+        settings = new BacktestSettings
+        {
+            TargetSignalType = SelectedSignalType.Value,
+            EntryDelayBars = entryDelayBars,
+            ExitAfterBars = exitAfterBars
+        };
+
+        return true;
+    }
+
+    private bool TryParsePositiveInt(
+        string? text,
+        string label,
+        out int value,
+        bool notifyOnError = true)
+    {
+        if (!int.TryParse(text, out value) || value < 1)
+        {
+            if (notifyOnError)
+            {
+                RequestMessage($"{label}は1以上の整数で入力してください。", "エラー", UserMessageKind.Warning);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    private ScoreFilterOption GetSelectedScoreFilterOption()
+    {
+        return SelectedScoreFilter
+            ?? AvailableScoreFilterOptions.First(x => x.MinimumScore is null);
+    }
+
+    private void RequestFailureMessage(
+        MainWindowOperationResult result,
+        string title = "エラー")
+    {
+        if (!string.IsNullOrWhiteSpace(result.UserMessage))
+        {
+            RequestMessage(result.UserMessage, title, UserMessageKind.Warning);
+        }
+    }
+
+    private void RequestMessage(
+        string message,
+        string title,
+        UserMessageKind kind)
+    {
+        MessageRequested?.Invoke(this, new UserMessageRequestedEventArgs(message, title, kind));
+    }
+
+    private void RaiseStateChanged()
+    {
+        OnPropertyChanged(nameof(CurrentAnalysisResult));
+        OnPropertyChanged(nameof(CurrentSymbol));
+        OnPropertyChanged(nameof(CurrentRequestedPeriod));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(IsFetching));
+        OnPropertyChanged(nameof(PriceRows));
+        OnPropertyChanged(nameof(SignalRows));
+        OnPropertyChanged(nameof(BacktestSummary));
+        OnPropertyChanged(nameof(BacktestScoreBandSummaryRows));
+        OnPropertyChanged(nameof(BacktestRows));
+        OnPropertyChanged(nameof(CanRefreshBacktest));
+        OnPropertyChanged(nameof(CanSaveAnalysisHistory));
+        RefreshBacktestCommand.RaiseCanExecuteChanged();
+        SaveAnalysisHistoryCommand.RaiseCanExecuteChanged();
+        FetchCommand.RaiseCanExecuteChanged();
     }
 }

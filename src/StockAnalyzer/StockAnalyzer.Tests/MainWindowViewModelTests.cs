@@ -64,4 +64,19 @@ public sealed class MainWindowViewModelTests
         Assert.False(result.Succeeded);
         Assert.Equal("先に価格データを取得してください。", result.UserMessage);
     }
+
+    [Fact(DisplayName = "保存コマンドは保存対象がない場合にメッセージを通知する")]
+    public void SaveAnalysisHistoryCommand_WithoutAnalysisResult_RequestsMessage()
+    {
+        var viewModel = new MainWindowViewModel();
+        UserMessageRequestedEventArgs? message = null;
+        viewModel.MessageRequested += (_, e) => message = e;
+
+        viewModel.SaveAnalysisHistoryCommand.Execute(null);
+
+        Assert.NotNull(message);
+        Assert.Equal("先に価格データを取得してください。", message.Message);
+        Assert.Equal("保存エラー", message.Title);
+        Assert.Equal(UserMessageKind.Warning, message.Kind);
+    }
 }

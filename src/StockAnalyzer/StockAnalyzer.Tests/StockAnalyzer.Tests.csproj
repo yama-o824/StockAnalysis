@@ -81,6 +81,8 @@
     <Compile Include="..\StockAnalyzer\ViewModels\ObservableObject.cs" Link="Source\ViewModels\ObservableObject.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\RelayCommand.cs" Link="Source\ViewModels\RelayCommand.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\AsyncRelayCommand.cs" Link="Source\ViewModels\AsyncRelayCommand.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\UserMessageKind.cs" Link="Source\ViewModels\UserMessageKind.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\UserMessageRequestedEventArgs.cs" Link="Source\ViewModels\UserMessageRequestedEventArgs.cs" />
   </ItemGroup>
 
 </Project>
