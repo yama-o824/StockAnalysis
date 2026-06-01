@@ -40,6 +40,7 @@
     <Compile Include="..\StockAnalyzer\Presentation\ScoreFilter.cs" Link="Source\Presentation\ScoreFilter.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\ScoreFilterOption.cs" Link="Source\Presentation\ScoreFilterOption.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\ScoreFilterOptions.cs" Link="Source\Presentation\ScoreFilterOptions.cs" />
+    <Compile Include="..\StockAnalyzer\Presentation\AnalysisHistoryViewRow.cs" Link="Source\Presentation\AnalysisHistoryViewRow.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\BacktestScoreBandSummaryViewRow.cs" Link="Source\Presentation\BacktestScoreBandSummaryViewRow.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\BacktestSummaryViewModel.cs" Link="Source\Presentation\BacktestSummaryViewModel.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\BacktestViewRow.cs" Link="Source\Presentation\BacktestViewRow.cs" />
