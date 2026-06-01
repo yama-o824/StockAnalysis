@@ -41,6 +41,9 @@
     <Compile Include="..\StockAnalyzer\Presentation\ScoreFilterOption.cs" Link="Source\Presentation\ScoreFilterOption.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\ScoreFilterOptions.cs" Link="Source\Presentation\ScoreFilterOptions.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\AnalysisHistoryViewRow.cs" Link="Source\Presentation\AnalysisHistoryViewRow.cs" />
+    <Compile Include="..\StockAnalyzer\Presentation\AnalysisHistorySignalTypeFilterOption.cs" Link="Source\Presentation\AnalysisHistorySignalTypeFilterOption.cs" />
+    <Compile Include="..\StockAnalyzer\Presentation\AnalysisHistorySortOrder.cs" Link="Source\Presentation\AnalysisHistorySortOrder.cs" />
+    <Compile Include="..\StockAnalyzer\Presentation\AnalysisHistorySortOrderOption.cs" Link="Source\Presentation\AnalysisHistorySortOrderOption.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\BacktestScoreBandSummaryViewRow.cs" Link="Source\Presentation\BacktestScoreBandSummaryViewRow.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\BacktestSummaryViewModel.cs" Link="Source\Presentation\BacktestSummaryViewModel.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\BacktestViewRow.cs" Link="Source\Presentation\BacktestViewRow.cs" />
@@ -78,6 +81,7 @@
     <Compile Include="..\StockAnalyzer\Services\Backtest\BacktestRunner.cs" Link="Source\Services\Backtest\BacktestRunner.cs" />
     <Compile Include="..\StockAnalyzer\Services\Backtest\BacktestScoreBandSummaryAggregator.cs" Link="Source\Services\Backtest\BacktestScoreBandSummaryAggregator.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\MainWindowOperationResult.cs" Link="Source\ViewModels\MainWindowOperationResult.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\AnalysisHistoryViewModel.cs" Link="Source\ViewModels\AnalysisHistoryViewModel.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\MainWindowViewModel.cs" Link="Source\ViewModels\MainWindowViewModel.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\ObservableObject.cs" Link="Source\ViewModels\ObservableObject.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\RelayCommand.cs" Link="Source\ViewModels\RelayCommand.cs" />
