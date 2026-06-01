@@ -1,9 +1,8 @@
 ﻿using StockAnalyzer.Models;
-using StockAnalyzer.Models.Analysis;
 using StockAnalyzer.Presentation;
 using StockAnalyzer.Services;
-using StockAnalyzer.Services.Backtest;
 using StockAnalyzer.Models.Backtest;
+using StockAnalyzer.ViewModels;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,16 +15,8 @@ namespace StockAnalyzer
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly StockAnalysisService _stockAnalysisService = new();
-        private readonly PriceDataFetchService _priceDataFetchService = new();
-        private readonly BacktestRunner _backtestRunner = new();
-        private readonly BacktestScoreBandSummaryAggregator _backtestScoreBandSummaryAggregator = new();
+        private readonly MainWindowViewModel _viewModel = new();
         private readonly SymbolHistoryStore _symbolHistoryStore = new();
-        private readonly AnalysisHistoryRecordFactory _analysisHistoryRecordFactory = new();
-        private readonly AnalysisHistoryCsvStore _analysisHistoryCsvStore = new();
-        private AnalysisResult? _currentAnalysisResult;
-        private string _currentSymbol = string.Empty;
-        private string _currentRequestedPeriod = string.Empty;
         private readonly IReadOnlyList<SignalTypeOption> _signalTypeOptions =
         [
             new(SignalType.Buy, "買い"),
@@ -36,7 +27,7 @@ namespace StockAnalyzer
             InitializeComponent();
             InitializeBacktestSettingsInputs();
             InitializeSymbolHistory();
-            ResetResultViews();
+            ApplyViewModelState();
         }
 
         private async void FetchButton_Click(object sender, RoutedEventArgs e)
@@ -61,132 +52,108 @@ namespace StockAnalyzer
                 return;
             }
 
-            ResetResultViews();
-            SetFetchingState(true, "取得中...");
-
             var period = periodOption.Value;
+            var scoreFilterOption = GetSelectedScoreFilterOption();
+            var fetchTask = _viewModel.FetchAsync(symbol, period, scoreFilterOption);
+            ApplyViewModelState();
 
-            string? stderr = null;
-            int? exitCode = null;
+            var result = await fetchTask;
 
-            try
+            if (result.Succeeded)
             {
-                var fetchResult = await _priceDataFetchService.FetchAsync(symbol, period);
-                var analysisResult = _stockAnalysisService.Analyze(fetchResult.PriceBars);
-                _currentAnalysisResult = analysisResult;
-                _currentSymbol = symbol;
-                _currentRequestedPeriod = period;
+                var backtestResult = _viewModel.RefreshBacktest(
+                    backtestSettings,
+                    scoreFilterOption,
+                    _viewModel.StatusText);
 
-                PricesDataGrid.ItemsSource = analysisResult.Bars
-                    .Select(PriceAnalysisRow.From)
-                    .ToList();
-
-                UpdateSignalResults();
-                UpdateBacktestResult(backtestSettings);
-                UpdateSymbolHistory(symbol);
-
-                SetFetchingState(false, $"取得完了: {fetchResult.Rows.Count}件");
+                if (backtestResult.Succeeded)
+                {
+                    UpdateSymbolHistory(symbol);
+                }
+                else
+                {
+                    ShowOperationFailure(backtestResult);
+                }
             }
-            catch (PriceDataFetchException ex)
+            else
             {
-                stderr = ex.Stderr;
-                exitCode = ex.ExitCode;
-                _currentAnalysisResult = null;
-                _currentSymbol = string.Empty;
-                _currentRequestedPeriod = string.Empty;
-                ResetResultViews();
-                SetFetchingState(false, "取得失敗");
-                ShowFriendlyError(ex, stderr, exitCode);
+                ShowOperationFailure(result);
             }
-            catch (Exception ex)
-            {
-                _currentAnalysisResult = null;
-                _currentSymbol = string.Empty;
-                _currentRequestedPeriod = string.Empty;
-                ResetResultViews();
-                SetFetchingState(false, "取得失敗");
-                ShowFriendlyError(ex, stderr, exitCode);
-            }
+
+            ApplyViewModelState();
         }
 
         private void SaveAnalysisHistoryButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_currentAnalysisResult is null)
+            var result = _viewModel.SaveAnalysisHistory();
+            ApplyViewModelState();
+
+            if (!result.Succeeded)
             {
-                MessageBox.Show("先に価格データを取得してください。");
+                ShowOperationFailure(result, "保存エラー");
                 return;
             }
 
-            var records = _analysisHistoryRecordFactory.Create(
-                _currentSymbol,
-                _currentRequestedPeriod,
-                DateTimeOffset.Now,
-                Guid.NewGuid().ToString("N"),
-                _currentAnalysisResult);
-
-            if (records.Count == 0)
-            {
-                MessageBox.Show("保存対象のシグナルがありません。");
-                return;
-            }
-
-            try
-            {
-                _analysisHistoryCsvStore.Append(records);
-                StatusText.Text = $"分析結果を保存しました: {records.Count}件";
-                MessageBox.Show(
-                    $"分析結果を保存しました。\n\n保存先: {_analysisHistoryCsvStore.FilePath}",
-                    "保存完了",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"保存に失敗しました。\n\n--- 詳細 ---\n{ex.Message}",
-                    "保存エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
+            MessageBox.Show(
+                result.UserMessage,
+                "保存完了",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
 
         private void RefreshBacktestButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_currentAnalysisResult is null)
-            {
-                MessageBox.Show("先に価格データを取得してください。");
-                return;
-            }
-
             if (!TryCreateBacktestSettings(out var backtestSettings))
             {
                 return;
             }
 
-            try
+            var result = _viewModel.RefreshBacktest(
+                backtestSettings,
+                GetSelectedScoreFilterOption());
+            ApplyViewModelState();
+
+            if (!result.Succeeded)
             {
-                UpdateBacktestResult(backtestSettings);
-                StatusText.Text = "バックテスト結果を更新しました。";
-            }
-            catch (Exception ex)
-            {
-                ShowFriendlyError(ex);
+                ShowOperationFailure(result);
             }
         }
 
-        private void SetFetchingState(bool isFetching, string? status = null)
+        private void ApplyViewModelState()
         {
-            FetchButton.IsEnabled = !isFetching;
-            RefreshBacktestButton.IsEnabled = !isFetching && _currentAnalysisResult is not null;
-            SaveAnalysisHistoryButton.IsEnabled = !isFetching && _currentAnalysisResult is not null;
-            SymbolComboBox.IsEnabled = !isFetching;
-            PeriodComboBox.IsEnabled = !isFetching;
-            SignalTypeComboBox.IsEnabled = !isFetching;
-            EntryDelayTextBox.IsEnabled = !isFetching;
-            HoldingBarsTextBox.IsEnabled = !isFetching;
-            LoadingBar.Visibility = isFetching ? Visibility.Visible : Visibility.Collapsed;
-            StatusText.Text = status ?? (isFetching ? "取得中..." : "完了");
-            Mouse.OverrideCursor = isFetching ? Cursors.Wait : null;
+            PricesDataGrid.ItemsSource = _viewModel.PriceRows;
+            SignalsDataGrid.ItemsSource = _viewModel.SignalRows;
+            BacktestSummaryPanel.DataContext = _viewModel.BacktestSummary;
+            BacktestScoreBandSummaryDataGrid.ItemsSource = _viewModel.BacktestScoreBandSummaryRows;
+            BacktestDataGrid.ItemsSource = _viewModel.BacktestRows;
+
+            BacktestPlaceholderText.Visibility = _viewModel.BacktestSummary is null
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            BacktestSummaryPanel.Visibility = _viewModel.BacktestSummary is null
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            BacktestScoreBandSummaryTitle.Visibility = _viewModel.BacktestSummary is null
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            BacktestScoreBandSummaryDataGrid.Visibility = _viewModel.BacktestSummary is null
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            BacktestDataGrid.Visibility = _viewModel.BacktestSummary is null
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+
+            FetchButton.IsEnabled = !_viewModel.IsFetching;
+            RefreshBacktestButton.IsEnabled = _viewModel.CanRefreshBacktest;
+            SaveAnalysisHistoryButton.IsEnabled = _viewModel.CanSaveAnalysisHistory;
+            SymbolComboBox.IsEnabled = !_viewModel.IsFetching;
+            PeriodComboBox.IsEnabled = !_viewModel.IsFetching;
+            SignalTypeComboBox.IsEnabled = !_viewModel.IsFetching;
+            EntryDelayTextBox.IsEnabled = !_viewModel.IsFetching;
+            HoldingBarsTextBox.IsEnabled = !_viewModel.IsFetching;
+            LoadingBar.Visibility = _viewModel.IsFetching ? Visibility.Visible : Visibility.Collapsed;
+            StatusText.Text = _viewModel.StatusText;
+            Mouse.OverrideCursor = _viewModel.IsFetching ? Cursors.Wait : null;
         }
 
         private void InitializeBacktestSettingsInputs()
@@ -229,7 +196,7 @@ namespace StockAnalyzer
 
         private void ScoreFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_currentAnalysisResult is null)
+            if (_viewModel.CurrentAnalysisResult is null)
             {
                 return;
             }
@@ -239,8 +206,18 @@ namespace StockAnalyzer
                 return;
             }
 
-            UpdateSignalResults();
-            UpdateBacktestResult(backtestSettings);
+            var scoreFilterOption = GetSelectedScoreFilterOption();
+            _viewModel.RefreshSignals(scoreFilterOption);
+            var result = _viewModel.RefreshBacktest(
+                backtestSettings,
+                scoreFilterOption,
+                _viewModel.StatusText);
+            ApplyViewModelState();
+
+            if (!result.Succeeded)
+            {
+                ShowOperationFailure(result);
+            }
         }
 
         private bool TryCreateBacktestSettings(out BacktestSettings settings)
@@ -286,76 +263,28 @@ namespace StockAnalyzer
 
         private sealed record SignalTypeOption(SignalType Value, string Label);
 
-        private void UpdateSignalResults()
+        private ScoreFilterOption GetSelectedScoreFilterOption()
         {
-            if (_currentAnalysisResult is null)
+            return ScoreFilterComboBox.SelectedItem is ScoreFilterOption option
+                ? option
+                : ScoreFilterOptions.All.First(x => x.MinimumScore is null);
+        }
+
+        private void ShowOperationFailure(
+            MainWindowOperationResult result,
+            string title = "エラー")
+        {
+            if (!string.IsNullOrWhiteSpace(result.UserMessage))
             {
-                SignalsDataGrid.ItemsSource = null;
+                MessageBox.Show(result.UserMessage, title, MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            SignalsDataGrid.ItemsSource = _currentAnalysisResult.Signals
-                .Where(x => MatchesScoreFilter(x.Score?.Total))
-                .Select(SignalViewRow.From)
-                .ToList();
-        }
-
-        private void UpdateBacktestResult(BacktestSettings settings)
-        {
-            if (_currentAnalysisResult is null)
+            if (result.Exception is not null)
             {
-                throw new InvalidOperationException("AnalysisResult is not loaded.");
+                ShowFriendlyError(result.Exception, result.Stderr, result.ExitCode);
+                return;
             }
-
-            var backtestResult = _backtestRunner.Run(_currentAnalysisResult, settings);
-
-            BacktestSummaryPanel.DataContext = BacktestSummaryViewModel.From(backtestResult);
-            BacktestScoreBandSummaryDataGrid.ItemsSource = _backtestScoreBandSummaryAggregator
-                .Create(backtestResult)
-                .Select(BacktestScoreBandSummaryViewRow.From)
-                .ToList();
-            BacktestDataGrid.ItemsSource = backtestResult.Trades
-                .Where(x => MatchesScoreFilter(x.SignalScore?.Total))
-                .Select(BacktestViewRow.From)
-                .ToList();
-
-            ShowResultViews();
-        }
-
-        private bool MatchesScoreFilter(int? score)
-        {
-            if (ScoreFilterComboBox.SelectedItem is not ScoreFilterOption option)
-            {
-                return true;
-            }
-
-            return ScoreFilter.Matches(score, option.MinimumScore);
-        }
-
-        private void ResetResultViews()
-        {
-            PricesDataGrid.ItemsSource = null;
-            SignalsDataGrid.ItemsSource = null;
-            BacktestDataGrid.ItemsSource = null;
-            BacktestScoreBandSummaryDataGrid.ItemsSource = null;
-            BacktestSummaryPanel.DataContext = null;
-
-            BacktestPlaceholderText.Visibility = Visibility.Visible;
-            BacktestSummaryPanel.Visibility = Visibility.Collapsed;
-            BacktestScoreBandSummaryTitle.Visibility = Visibility.Collapsed;
-            BacktestScoreBandSummaryDataGrid.Visibility = Visibility.Collapsed;
-            BacktestDataGrid.Visibility = Visibility.Collapsed;
-            RefreshBacktestButton.IsEnabled = _currentAnalysisResult is not null;
-            SaveAnalysisHistoryButton.IsEnabled = _currentAnalysisResult is not null;
-        }
-
-        private void ShowResultViews()
-        {
-            BacktestPlaceholderText.Visibility = Visibility.Collapsed;
-            BacktestSummaryPanel.Visibility = Visibility.Visible;
-            BacktestScoreBandSummaryTitle.Visibility = Visibility.Visible;
-            BacktestScoreBandSummaryDataGrid.Visibility = Visibility.Visible;
-            BacktestDataGrid.Visibility = Visibility.Visible;
         }
 
         private void ShowFriendlyError(Exception ex, string? stderr = null, int? exitCode = null)
