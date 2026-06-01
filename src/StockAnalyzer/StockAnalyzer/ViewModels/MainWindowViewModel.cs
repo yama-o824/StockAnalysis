@@ -327,6 +327,7 @@ public sealed class MainWindowViewModel : ObservableObject
         try
         {
             _analysisHistoryCsvStore.Append(records);
+            History.ReloadIfLoaded();
             StatusText = $"分析結果を保存しました: {records.Count}件";
             OnPropertyChanged(nameof(StatusText));
 

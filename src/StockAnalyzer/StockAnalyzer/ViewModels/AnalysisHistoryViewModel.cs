@@ -107,10 +107,7 @@ public sealed class AnalysisHistoryViewModel : ObservableObject
     {
         try
         {
-            var records = _analysisHistoryCsvStore.Load();
-            _allRows = records
-                .Select(AnalysisHistoryViewRow.From)
-                .ToList();
+            LoadRows();
             _hasLoadedHistory = true;
             OnPropertyChanged(nameof(HasLoadedHistory));
             ApplyFilters();
@@ -128,10 +125,37 @@ public sealed class AnalysisHistoryViewModel : ObservableObject
         }
     }
 
+    public void ReloadIfLoaded()
+    {
+        if (!_hasLoadedHistory)
+        {
+            return;
+        }
+
+        try
+        {
+            LoadRows();
+            ApplyFilters();
+            StatusText = $"分析履歴を更新しました: {_allRows.Count}件";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"保存は完了しましたが、履歴一覧の更新に失敗しました: {ex.Message}";
+        }
+    }
+
     public void ClearFilter()
     {
         SymbolFilterText = string.Empty;
         SelectedSignalTypeFilter = SignalTypeFilterOptions[0];
+    }
+
+    private void LoadRows()
+    {
+        var records = _analysisHistoryCsvStore.Load();
+        _allRows = records
+            .Select(AnalysisHistoryViewRow.From)
+            .ToList();
     }
 
     private void ApplyFilters()

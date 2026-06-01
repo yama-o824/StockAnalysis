@@ -97,6 +97,41 @@ public sealed class AnalysisHistoryViewModelTests
         Assert.Equal("分析履歴の読み込みに失敗しました。", viewModel.StatusText);
     }
 
+    [Fact(DisplayName = "読み込み済みの履歴は保存後更新用に再読み込みできる")]
+    public void ReloadIfLoaded_WhenAlreadyLoaded_ReloadsRows()
+    {
+        var store = CreateStore(
+        [
+            CreateRecord("run-1", "7203.T", new DateOnly(2026, 5, 30), SignalType.Buy)
+        ]);
+        var viewModel = new AnalysisHistoryViewModel(store);
+        viewModel.LoadHistory();
+        store.Append(
+        [
+            CreateRecord("run-2", "6758.T", new DateOnly(2026, 5, 31), SignalType.Sell)
+        ]);
+
+        viewModel.ReloadIfLoaded();
+
+        Assert.Equal(2, viewModel.HistoryRows.Count);
+        Assert.Equal("6758.T", viewModel.HistoryRows[0].Symbol);
+        Assert.Equal("分析履歴を更新しました: 2件", viewModel.StatusText);
+    }
+
+    [Fact(DisplayName = "未読み込みの履歴は保存後更新で読み込まない")]
+    public void ReloadIfLoaded_WhenNotLoaded_DoesNotLoadRows()
+    {
+        var viewModel = new AnalysisHistoryViewModel(CreateStore(
+        [
+            CreateRecord("run-1", "7203.T", new DateOnly(2026, 5, 30), SignalType.Buy)
+        ]));
+
+        viewModel.ReloadIfLoaded();
+
+        Assert.Empty(viewModel.HistoryRows);
+        Assert.False(viewModel.HasLoadedHistory);
+    }
+
     private static AnalysisHistoryCsvStore CreateStore(IReadOnlyList<AnalysisHistoryRecord> records)
     {
         var filePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv");
