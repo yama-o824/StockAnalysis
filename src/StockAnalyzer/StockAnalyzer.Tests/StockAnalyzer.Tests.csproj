@@ -51,6 +51,11 @@
     <Compile Include="..\StockAnalyzer\Services\PriceDataFetchException.cs" Link="Source\Services\PriceDataFetchException.cs" />
     <Compile Include="..\StockAnalyzer\Services\PriceDataFetchResult.cs" Link="Source\Services\PriceDataFetchResult.cs" />
     <Compile Include="..\StockAnalyzer\Services\PriceDataFetchService.cs" Link="Source\Services\PriceDataFetchService.cs" />
+    <Compile Include="..\StockAnalyzer\Services\StockAnalysisService.cs" Link="Source\Services\StockAnalysisService.cs" />
+    <Compile Include="..\StockAnalyzer\Analyzer\MovingAverageAnalyzer.cs" Link="Source\Analyzer\MovingAverageAnalyzer.cs" />
+    <Compile Include="..\StockAnalyzer\Analyzer\Candles\CandleAnalyzer.cs" Link="Source\Analyzer\Candles\CandleAnalyzer.cs" />
+    <Compile Include="..\StockAnalyzer\Analyzer\Indicators\AnalysisBarBuilder.cs" Link="Source\Analyzer\Indicators\AnalysisBarBuilder.cs" />
+    <Compile Include="..\StockAnalyzer\Analyzer\Signals\CrossSignalDetector.cs" Link="Source\Analyzer\Signals\CrossSignalDetector.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" Link="Source\Analyzer\Signals\Ma75DeviationRateEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\PullbackEvaluator.cs" Link="Source\Analyzer\Signals\PullbackEvaluator.cs" />
     <Compile Include="..\StockAnalyzer\Analyzer\Signals\SignalScoreCalculator.cs" Link="Source\Analyzer\Signals\SignalScoreCalculator.cs" />
@@ -66,6 +71,8 @@
     <Compile Include="..\StockAnalyzer\Models\Backtest\BacktestResult.cs" Link="Source\Models\Backtest\BacktestResult.cs" />
     <Compile Include="..\StockAnalyzer\Services\Backtest\BacktestRunner.cs" Link="Source\Services\Backtest\BacktestRunner.cs" />
     <Compile Include="..\StockAnalyzer\Services\Backtest\BacktestScoreBandSummaryAggregator.cs" Link="Source\Services\Backtest\BacktestScoreBandSummaryAggregator.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\MainWindowOperationResult.cs" Link="Source\ViewModels\MainWindowOperationResult.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\MainWindowViewModel.cs" Link="Source\ViewModels\MainWindowViewModel.cs" />
   </ItemGroup>
 
 </Project>
