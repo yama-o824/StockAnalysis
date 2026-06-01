@@ -36,7 +36,8 @@ public sealed class MainWindowViewModel : ObservableObject
         BacktestScoreBandSummaryAggregator backtestScoreBandSummaryAggregator,
         AnalysisHistoryRecordFactory analysisHistoryRecordFactory,
         AnalysisHistoryCsvStore analysisHistoryCsvStore,
-        SymbolHistoryStore symbolHistoryStore)
+        SymbolHistoryStore symbolHistoryStore,
+        AnalysisHistoryViewModel? historyViewModel = null)
     {
         _stockAnalysisService = stockAnalysisService;
         _priceDataFetchService = priceDataFetchService;
@@ -45,6 +46,8 @@ public sealed class MainWindowViewModel : ObservableObject
         _analysisHistoryRecordFactory = analysisHistoryRecordFactory;
         _analysisHistoryCsvStore = analysisHistoryCsvStore;
         _symbolHistoryStore = symbolHistoryStore;
+        History = historyViewModel ?? new AnalysisHistoryViewModel(analysisHistoryCsvStore);
+        History.MessageRequested += History_MessageRequested;
         SignalTypeOptions =
         [
             new(SignalType.Buy, "買い"),
@@ -146,6 +149,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public BacktestSummaryViewModel? BacktestSummary { get; private set; }
     public IReadOnlyList<BacktestScoreBandSummaryViewRow> BacktestScoreBandSummaryRows { get; private set; } = [];
     public IReadOnlyList<BacktestViewRow> BacktestRows { get; private set; } = [];
+    public AnalysisHistoryViewModel History { get; }
     public bool CanRefreshBacktest => !IsFetching && CurrentAnalysisResult is not null;
     public bool CanSaveAnalysisHistory => !IsFetching && CurrentAnalysisResult is not null;
     public bool HasBacktestSummary => BacktestSummary is not null;
@@ -513,6 +517,11 @@ public sealed class MainWindowViewModel : ObservableObject
         MessageRequested?.Invoke(this, new UserMessageRequestedEventArgs(message, title, kind));
     }
 
+    private void History_MessageRequested(object? sender, UserMessageRequestedEventArgs e)
+    {
+        MessageRequested?.Invoke(this, e);
+    }
+
     private void RaiseStateChanged()
     {
         OnPropertyChanged(nameof(CurrentAnalysisResult));
@@ -526,6 +535,7 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(HasBacktestSummary));
         OnPropertyChanged(nameof(BacktestScoreBandSummaryRows));
         OnPropertyChanged(nameof(BacktestRows));
+        OnPropertyChanged(nameof(History));
         OnPropertyChanged(nameof(CanRefreshBacktest));
         OnPropertyChanged(nameof(CanSaveAnalysisHistory));
         RefreshBacktestCommand.RaiseCanExecuteChanged();

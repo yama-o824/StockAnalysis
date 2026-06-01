@@ -1,5 +1,7 @@
 using StockAnalyzer.ViewModels;
 using StockAnalyzer.Models;
+using StockAnalyzer.Services;
+using StockAnalyzer.Services.Backtest;
 using Xunit;
 
 namespace StockAnalyzer.Tests;
@@ -78,5 +80,30 @@ public sealed class MainWindowViewModelTests
         Assert.Equal("先に価格データを取得してください。", message.Message);
         Assert.Equal("保存エラー", message.Title);
         Assert.Equal(UserMessageKind.Warning, message.Kind);
+    }
+
+    [Fact(DisplayName = "履歴ViewModelのメッセージ通知をMainWindowViewModelから中継する")]
+    public void HistoryMessageRequested_RelaysMessage()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv");
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        File.WriteAllText(filePath, "InvalidHeader\n");
+        var history = new AnalysisHistoryViewModel(new AnalysisHistoryCsvStore(filePath));
+        var viewModel = new MainWindowViewModel(
+            new StockAnalysisService(),
+            new PriceDataFetchService(),
+            new BacktestRunner(),
+            new BacktestScoreBandSummaryAggregator(),
+            new AnalysisHistoryRecordFactory(),
+            new AnalysisHistoryCsvStore(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv")),
+            new SymbolHistoryStore(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "symbol-history.json")),
+            history);
+        UserMessageRequestedEventArgs? message = null;
+        viewModel.MessageRequested += (_, e) => message = e;
+
+        viewModel.History.LoadHistory();
+
+        Assert.NotNull(message);
+        Assert.Equal("履歴読み込みエラー", message.Title);
     }
 }
