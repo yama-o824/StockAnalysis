@@ -170,7 +170,8 @@ public static class AnalysisHistoryCsvFormat
     private static TEnum ParseEnum<TEnum>(string value, string columnName)
         where TEnum : struct
     {
-        if (Enum.TryParse<TEnum>(value, ignoreCase: false, out var parsed))
+        if (Enum.TryParse<TEnum>(value, ignoreCase: false, out var parsed)
+            && Enum.IsDefined(parsed))
         {
             return parsed;
         }

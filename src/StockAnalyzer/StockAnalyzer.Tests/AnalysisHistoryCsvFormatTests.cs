@@ -195,4 +195,51 @@ public sealed class AnalysisHistoryCsvFormatTests
 
         Assert.Throws<NotSupportedException>(() => AnalysisHistoryCsvFormat.FromFields(fields));
     }
+
+    [Fact(DisplayName = "未定義のSignalType数値は読み込み失敗にする")]
+    public void FromFields_UndefinedSignalTypeNumber_Throws()
+    {
+        var fields = CreateValidFields();
+        fields[8] = "999";
+
+        Assert.Throws<FormatException>(() => AnalysisHistoryCsvFormat.FromFields(fields));
+    }
+
+    [Fact(DisplayName = "未定義のRank数値は読み込み失敗にする")]
+    public void FromFields_UndefinedRankNumber_Throws()
+    {
+        var fields = CreateValidFields();
+        fields[19] = "999";
+
+        Assert.Throws<FormatException>(() => AnalysisHistoryCsvFormat.FromFields(fields));
+    }
+
+    private static string[] CreateValidFields()
+    {
+        return
+        [
+                "1",
+                "run-1",
+                "7203.T",
+                "2026-06-01T09:30:00.0000000+09:00",
+                "1y",
+                "2026-01-01",
+                "2026-06-01",
+                "2026-05-31",
+                "Buy",
+                "105.5",
+                "101.25",
+                "99",
+                "100",
+                "-1",
+                "4.25",
+                "1200",
+                "1.25",
+                "0.041975308641975309",
+                "80",
+                "Strong",
+                "出来高 20/20",
+                "出来高を伴う上抜け / 強い陽線"
+        ];
+    }
 }
