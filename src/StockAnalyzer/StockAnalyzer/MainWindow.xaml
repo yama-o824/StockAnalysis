@@ -18,7 +18,9 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
-    <DockPanel Margin="12">
+    <TabControl Margin="12">
+        <TabItem Header="分析">
+            <DockPanel>
         <StackPanel DockPanel.Dock="Top">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Label Content="銘柄" Width="48" VerticalAlignment="Center"/>
@@ -374,5 +376,169 @@
                 </Expander>
             </StackPanel>
         </ScrollViewer>
-    </DockPanel>
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="履歴">
+            <Grid DataContext="{Binding History}" Margin="0,10,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <WrapPanel Grid.Row="0" VerticalAlignment="Center">
+                    <Button Content="読み込み"
+                            Command="{Binding LoadHistoryCommand}"
+                            Width="80"
+                            Height="24"/>
+                    <Label Content="銘柄" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    <TextBox Width="140"
+                             Height="24"
+                             Text="{Binding SymbolFilterText, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Content="種別" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding SignalTypeFilterOptions}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedSignalTypeFilter}"
+                              Width="100"
+                              Height="24"/>
+                    <Label Content="並び順" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding SortOrderOptions}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedSortOrder}"
+                              Width="140"
+                              Height="24"/>
+                    <Button Content="クリア"
+                            Command="{Binding ClearFilterCommand}"
+                            Width="72"
+                            Height="24"
+                            Margin="12,0,0,0"/>
+                    <TextBlock Text="{Binding StatusText}"
+                               VerticalAlignment="Center"
+                               Margin="14,0,0,0"/>
+                </WrapPanel>
+
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding HistoryRows}"
+                          SelectedItem="{Binding SelectedHistoryRow}"
+                          Margin="0,10,0,10"
+                          IsReadOnly="True"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserReorderColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="シグナル日"
+                                            Binding="{Binding SignalDateText}"
+                                            Width="100"/>
+                        <DataGridTextColumn Header="銘柄"
+                                            Binding="{Binding Symbol}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="種別"
+                                            Binding="{Binding SignalTypeLabel}"
+                                            ElementStyle="{StaticResource CenterCellStyle}"
+                                            Width="70"/>
+                        <DataGridTextColumn Header="終値"
+                                            Binding="{Binding Price, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="MA75"
+                                            Binding="{Binding Ma75, StringFormat=N2}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="90"/>
+                        <DataGridTextColumn Header="スコア"
+                                            Binding="{Binding ScoreText}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                            Width="70"/>
+                        <DataGridTextColumn Header="ランク"
+                                            Binding="{Binding RankText}"
+                                            ElementStyle="{StaticResource CenterCellStyle}"
+                                            Width="80"/>
+                        <DataGridTextColumn Header="実行日時"
+                                            Binding="{Binding ExecutedAtText}"
+                                            Width="170"/>
+                        <DataGridTextColumn Header="取得期間"
+                                            Binding="{Binding RequestedPeriod}"
+                                            Width="80"/>
+                        <DataGridTextColumn Header="根拠"
+                                            Binding="{Binding Reasons}"
+                                            Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <Border Grid.Row="2"
+                        Padding="12"
+                        BorderBrush="#D0D7DE"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Visibility="{Binding HasHistoryRows, Converter={StaticResource BoolToVisibility}}">
+                    <Grid DataContext="{Binding SelectedHistoryRow}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="160"/>
+                            <ColumnDefinition Width="160"/>
+                            <ColumnDefinition Width="160"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,8">
+                            <TextBlock Text="シグナル日" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding SignalDateText}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,8">
+                            <TextBlock Text="銘柄" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding Symbol}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,12,8">
+                            <TextBlock Text="種別" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding SignalTypeLabel}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,0,8">
+                            <TextBlock Text="分析期間" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding AnalysisPeriodText}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,8">
+                            <TextBlock Text="前日終値 / MA75" FontWeight="SemiBold"/>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0:N2} / {1:N2}">
+                                        <Binding Path="PrevPrice"/>
+                                        <Binding Path="PrevMa75"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,12,8">
+                            <TextBlock Text="当日終値 / MA75" FontWeight="SemiBold"/>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0:N2} / {1:N2}">
+                                        <Binding Path="Price"/>
+                                        <Binding Path="Ma75"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,12,8">
+                            <TextBlock Text="出来高倍率" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding VolumeRatio, StringFormat=N2}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="3" Margin="0,0,0,8">
+                            <TextBlock Text="スコア内訳" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding ScoreBreakdown}" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4">
+                            <TextBlock Text="根拠" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding Reasons}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Window>
