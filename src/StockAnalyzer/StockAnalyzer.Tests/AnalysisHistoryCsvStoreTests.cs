@@ -75,6 +75,80 @@ public sealed class AnalysisHistoryCsvStoreTests
         Assert.False(File.Exists(filePath));
     }
 
+    [Fact(DisplayName = "保存済みCSVから履歴レコードを読み込める")]
+    public void Load_ReadsRecords()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv");
+        var store = new AnalysisHistoryCsvStore(filePath);
+        store.Append(
+        [
+            CreateRecord(runId: "run-1", symbol: "7203.T", reasons: "first"),
+            CreateRecord(runId: "run-2", symbol: "6758.T", reasons: "second")
+        ]);
+
+        var records = store.Load();
+
+        Assert.Equal(2, records.Count);
+        Assert.Equal("run-1", records[0].RunId);
+        Assert.Equal("7203.T", records[0].Symbol);
+        Assert.Equal("run-2", records[1].RunId);
+        Assert.Equal("6758.T", records[1].Symbol);
+    }
+
+    [Fact(DisplayName = "引用符内のカンマ、引用符、改行を含む値を読み込める")]
+    public void Load_WhenFieldsContainEscapedCharacters_ReadsRecords()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv");
+        var store = new AnalysisHistoryCsvStore(filePath);
+        store.Append(
+        [
+            CreateRecord(
+                runId: "run-1",
+                symbol: "TEST",
+                reasons: "line1, with \"quote\"\nline2")
+        ]);
+
+        var records = store.Load();
+
+        Assert.Single(records);
+        Assert.Equal("line1, with \"quote\"\nline2", records[0].Reasons);
+    }
+
+    [Fact(DisplayName = "履歴CSVが存在しない場合は空の履歴を返す")]
+    public void Load_WhenFileDoesNotExist_ReturnsEmptyRecords()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv");
+        var store = new AnalysisHistoryCsvStore(filePath);
+
+        var records = store.Load();
+
+        Assert.Empty(records);
+    }
+
+    [Fact(DisplayName = "履歴CSVが空の場合は空の履歴を返す")]
+    public void Load_WhenFileIsEmpty_ReturnsEmptyRecords()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv");
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        File.WriteAllText(filePath, string.Empty);
+        var store = new AnalysisHistoryCsvStore(filePath);
+
+        var records = store.Load();
+
+        Assert.Empty(records);
+    }
+
+    [Fact(DisplayName = "履歴CSVのヘッダーが不正な場合は読み込み失敗にする")]
+    public void Load_WhenHeaderIsInvalid_Throws()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv");
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        File.WriteAllText(filePath, "InvalidHeader\n");
+        var store = new AnalysisHistoryCsvStore(filePath);
+
+        Assert.Throws<InvalidDataException>(() => store.Load());
+    }
+
     private static AnalysisHistoryRecord CreateRecord(
         string runId,
         string symbol,

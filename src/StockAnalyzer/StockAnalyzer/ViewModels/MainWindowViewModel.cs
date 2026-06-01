@@ -36,7 +36,8 @@ public sealed class MainWindowViewModel : ObservableObject
         BacktestScoreBandSummaryAggregator backtestScoreBandSummaryAggregator,
         AnalysisHistoryRecordFactory analysisHistoryRecordFactory,
         AnalysisHistoryCsvStore analysisHistoryCsvStore,
-        SymbolHistoryStore symbolHistoryStore)
+        SymbolHistoryStore symbolHistoryStore,
+        AnalysisHistoryViewModel? historyViewModel = null)
     {
         _stockAnalysisService = stockAnalysisService;
         _priceDataFetchService = priceDataFetchService;
@@ -45,6 +46,8 @@ public sealed class MainWindowViewModel : ObservableObject
         _analysisHistoryRecordFactory = analysisHistoryRecordFactory;
         _analysisHistoryCsvStore = analysisHistoryCsvStore;
         _symbolHistoryStore = symbolHistoryStore;
+        History = historyViewModel ?? new AnalysisHistoryViewModel(analysisHistoryCsvStore);
+        History.MessageRequested += History_MessageRequested;
         SignalTypeOptions =
         [
             new(SignalType.Buy, "買い"),
@@ -67,6 +70,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _entryDelayText = "1";
     private string _holdingBarsText = "5";
     private IReadOnlyList<string> _symbolHistory = [];
+    private bool _isCurrentAnalysisSaved;
 
     public IReadOnlyList<PeriodOption> AvailablePeriodOptions { get; }
     public IReadOnlyList<SignalTypeOption> SignalTypeOptions { get; }
@@ -141,13 +145,26 @@ public sealed class MainWindowViewModel : ObservableObject
     public string CurrentRequestedPeriod { get; private set; } = string.Empty;
     public string StatusText { get; private set; } = string.Empty;
     public bool IsFetching { get; private set; }
+    public bool IsCurrentAnalysisSaved
+    {
+        get => _isCurrentAnalysisSaved;
+        private set
+        {
+            if (SetProperty(ref _isCurrentAnalysisSaved, value))
+            {
+                OnPropertyChanged(nameof(CanSaveAnalysisHistory));
+                SaveAnalysisHistoryCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
     public IReadOnlyList<PriceAnalysisRow> PriceRows { get; private set; } = [];
     public IReadOnlyList<SignalViewRow> SignalRows { get; private set; } = [];
     public BacktestSummaryViewModel? BacktestSummary { get; private set; }
     public IReadOnlyList<BacktestScoreBandSummaryViewRow> BacktestScoreBandSummaryRows { get; private set; } = [];
     public IReadOnlyList<BacktestViewRow> BacktestRows { get; private set; } = [];
+    public AnalysisHistoryViewModel History { get; }
     public bool CanRefreshBacktest => !IsFetching && CurrentAnalysisResult is not null;
-    public bool CanSaveAnalysisHistory => !IsFetching && CurrentAnalysisResult is not null;
+    public bool CanSaveAnalysisHistory => !IsFetching && CurrentAnalysisResult is not null && !IsCurrentAnalysisSaved;
     public bool HasBacktestSummary => BacktestSummary is not null;
     public AsyncRelayCommand FetchCommand { get; }
     public RelayCommand RefreshBacktestCommand { get; }
@@ -180,6 +197,7 @@ public sealed class MainWindowViewModel : ObservableObject
         CurrentAnalysisResult = null;
         CurrentSymbol = string.Empty;
         CurrentRequestedPeriod = string.Empty;
+        IsCurrentAnalysisSaved = false;
         PriceRows = [];
         SignalRows = [];
         BacktestSummary = null;
@@ -306,6 +324,13 @@ public sealed class MainWindowViewModel : ObservableObject
                 userMessage: "先に価格データを取得してください。");
         }
 
+        if (IsCurrentAnalysisSaved)
+        {
+            return MainWindowOperationResult.Failure(
+                StatusText,
+                userMessage: "この分析結果は保存済みです。");
+        }
+
         var records = _analysisHistoryRecordFactory.Create(
             CurrentSymbol,
             CurrentRequestedPeriod,
@@ -323,6 +348,8 @@ public sealed class MainWindowViewModel : ObservableObject
         try
         {
             _analysisHistoryCsvStore.Append(records);
+            History.ReloadIfLoaded();
+            IsCurrentAnalysisSaved = true;
             StatusText = $"分析結果を保存しました: {records.Count}件";
             OnPropertyChanged(nameof(StatusText));
 
@@ -513,6 +540,11 @@ public sealed class MainWindowViewModel : ObservableObject
         MessageRequested?.Invoke(this, new UserMessageRequestedEventArgs(message, title, kind));
     }
 
+    private void History_MessageRequested(object? sender, UserMessageRequestedEventArgs e)
+    {
+        MessageRequested?.Invoke(this, e);
+    }
+
     private void RaiseStateChanged()
     {
         OnPropertyChanged(nameof(CurrentAnalysisResult));
@@ -520,12 +552,14 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(CurrentRequestedPeriod));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(IsFetching));
+        OnPropertyChanged(nameof(IsCurrentAnalysisSaved));
         OnPropertyChanged(nameof(PriceRows));
         OnPropertyChanged(nameof(SignalRows));
         OnPropertyChanged(nameof(BacktestSummary));
         OnPropertyChanged(nameof(HasBacktestSummary));
         OnPropertyChanged(nameof(BacktestScoreBandSummaryRows));
         OnPropertyChanged(nameof(BacktestRows));
+        OnPropertyChanged(nameof(History));
         OnPropertyChanged(nameof(CanRefreshBacktest));
         OnPropertyChanged(nameof(CanSaveAnalysisHistory));
         RefreshBacktestCommand.RaiseCanExecuteChanged();

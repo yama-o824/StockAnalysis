@@ -20,6 +20,30 @@ public sealed class AnalysisHistoryCsvStore
 
     public string FilePath => _filePath;
 
+    public IReadOnlyList<AnalysisHistoryRecord> Load()
+    {
+        if (!File.Exists(_filePath) || new FileInfo(_filePath).Length == 0)
+        {
+            return [];
+        }
+
+        var rows = ParseCsv(File.ReadAllText(_filePath, Encoding.UTF8));
+        if (rows.Count == 0)
+        {
+            return [];
+        }
+
+        if (!rows[0].SequenceEqual(AnalysisHistoryCsvFormat.Headers))
+        {
+            throw new InvalidDataException("分析履歴CSVのヘッダーが不正です。");
+        }
+
+        return rows
+            .Skip(1)
+            .Select(AnalysisHistoryCsvFormat.FromFields)
+            .ToList();
+    }
+
     public void Append(IReadOnlyList<AnalysisHistoryRecord> records)
     {
         ArgumentNullException.ThrowIfNull(records);
@@ -64,6 +88,87 @@ public sealed class AnalysisHistoryCsvStore
         }
 
         return $"\"{value.Replace("\"", "\"\"")}\"";
+    }
+
+    private static IReadOnlyList<IReadOnlyList<string>> ParseCsv(string text)
+    {
+        var rows = new List<IReadOnlyList<string>>();
+        var fields = new List<string>();
+        var fieldBuilder = new StringBuilder();
+        var inQuotes = false;
+        var hasAnyCharacterInRow = false;
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            var current = text[i];
+            hasAnyCharacterInRow = true;
+
+            if (inQuotes)
+            {
+                if (current == '"')
+                {
+                    if (i + 1 < text.Length && text[i + 1] == '"')
+                    {
+                        fieldBuilder.Append('"');
+                        i++;
+                    }
+                    else
+                    {
+                        inQuotes = false;
+                    }
+                }
+                else
+                {
+                    fieldBuilder.Append(current);
+                }
+
+                continue;
+            }
+
+            if (current == '"')
+            {
+                inQuotes = true;
+                continue;
+            }
+
+            if (current == ',')
+            {
+                fields.Add(fieldBuilder.ToString());
+                fieldBuilder.Clear();
+                continue;
+            }
+
+            if (current == '\r' || current == '\n')
+            {
+                fields.Add(fieldBuilder.ToString());
+                fieldBuilder.Clear();
+                rows.Add(fields.ToList());
+                fields.Clear();
+                hasAnyCharacterInRow = false;
+
+                if (current == '\r' && i + 1 < text.Length && text[i + 1] == '\n')
+                {
+                    i++;
+                }
+
+                continue;
+            }
+
+            fieldBuilder.Append(current);
+        }
+
+        if (inQuotes)
+        {
+            throw new FormatException("分析履歴CSVの引用符が閉じられていません。");
+        }
+
+        if (hasAnyCharacterInRow || fieldBuilder.Length > 0 || fields.Count > 0)
+        {
+            fields.Add(fieldBuilder.ToString());
+            rows.Add(fields.ToList());
+        }
+
+        return rows;
     }
 
     private static string CreateDefaultFilePath()
