@@ -117,6 +117,7 @@ public sealed class AnalysisHistoryViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            ClearRows();
             StatusText = "分析履歴の読み込みに失敗しました。";
             RequestMessage(
                 $"分析履歴の読み込みに失敗しました。\n\n--- 詳細 ---\n{ex.Message}",
@@ -156,6 +157,13 @@ public sealed class AnalysisHistoryViewModel : ObservableObject
         _allRows = records
             .Select(AnalysisHistoryViewRow.From)
             .ToList();
+    }
+
+    private void ClearRows()
+    {
+        _allRows = [];
+        HistoryRows = [];
+        SelectedHistoryRow = null;
     }
 
     private void ApplyFilters()

@@ -97,6 +97,27 @@ public sealed class AnalysisHistoryViewModelTests
         Assert.Equal("分析履歴の読み込みに失敗しました。", viewModel.StatusText);
     }
 
+    [Fact(DisplayName = "読み込み済み履歴がある状態で読み込み失敗した場合は古い表示行をクリアする")]
+    public void LoadHistory_WhenLoadFailsAfterSuccessfulLoad_ClearsRows()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "analysis-history.csv");
+        var store = new AnalysisHistoryCsvStore(filePath);
+        store.Append(
+        [
+            CreateRecord("run-1", "7203.T", new DateOnly(2026, 5, 30), SignalType.Buy)
+        ]);
+        var viewModel = new AnalysisHistoryViewModel(store);
+        viewModel.LoadHistory();
+        File.WriteAllText(filePath, "InvalidHeader\n");
+
+        viewModel.LoadHistory();
+
+        Assert.Empty(viewModel.HistoryRows);
+        Assert.Null(viewModel.SelectedHistoryRow);
+        Assert.False(viewModel.HasHistoryRows);
+        Assert.Equal("分析履歴の読み込みに失敗しました。", viewModel.StatusText);
+    }
+
     [Fact(DisplayName = "読み込み済みの履歴は保存後更新用に再読み込みできる")]
     public void ReloadIfLoaded_WhenAlreadyLoaded_ReloadsRows()
     {
