@@ -285,6 +285,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 .Select(BacktestViewRow.From)
                 .ToList();
             StatusText = successStatusMessage;
+            RaiseStateChanged();
 
             return MainWindowOperationResult.Success(StatusText);
         }
@@ -323,6 +324,7 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             _analysisHistoryCsvStore.Append(records);
             StatusText = $"分析結果を保存しました: {records.Count}件";
+            OnPropertyChanged(nameof(StatusText));
 
             return MainWindowOperationResult.Success(
                 StatusText,
