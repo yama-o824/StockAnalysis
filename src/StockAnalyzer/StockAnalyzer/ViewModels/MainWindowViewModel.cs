@@ -142,4 +142,41 @@ public sealed class MainWindowViewModel
             .Select(SignalViewRow.From)
             .ToList();
     }
+
+    public MainWindowOperationResult RefreshBacktest(
+        BacktestSettings settings,
+        ScoreFilterOption scoreFilterOption,
+        string successStatusMessage = "バックテスト結果を更新しました。")
+    {
+        if (CurrentAnalysisResult is null)
+        {
+            return MainWindowOperationResult.Failure(
+                StatusText,
+                userMessage: "先に価格データを取得してください。");
+        }
+
+        try
+        {
+            var backtestResult = _backtestRunner.Run(CurrentAnalysisResult, settings);
+
+            BacktestSummary = BacktestSummaryViewModel.From(backtestResult);
+            BacktestScoreBandSummaryRows = _backtestScoreBandSummaryAggregator
+                .Create(backtestResult)
+                .Select(BacktestScoreBandSummaryViewRow.From)
+                .ToList();
+            BacktestRows = backtestResult.Trades
+                .Where(x => ScoreFilter.Matches(x.SignalScore?.Total, scoreFilterOption.MinimumScore))
+                .Select(BacktestViewRow.From)
+                .ToList();
+            StatusText = successStatusMessage;
+
+            return MainWindowOperationResult.Success(StatusText);
+        }
+        catch (Exception ex)
+        {
+            return MainWindowOperationResult.Failure(
+                StatusText,
+                exception: ex);
+        }
+    }
 }
