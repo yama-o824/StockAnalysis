@@ -148,10 +148,12 @@ public sealed class MainWindowViewModel : ObservableObject
     public IReadOnlyList<BacktestViewRow> BacktestRows { get; private set; } = [];
     public bool CanRefreshBacktest => !IsFetching && CurrentAnalysisResult is not null;
     public bool CanSaveAnalysisHistory => !IsFetching && CurrentAnalysisResult is not null;
+    public bool HasBacktestSummary => BacktestSummary is not null;
     public AsyncRelayCommand FetchCommand { get; }
     public RelayCommand RefreshBacktestCommand { get; }
     public RelayCommand SaveAnalysisHistoryCommand { get; }
     public event EventHandler<UserMessageRequestedEventArgs>? MessageRequested;
+    public event EventHandler<MainWindowOperationResult>? OperationFailed;
 
     public void LoadSymbolHistory()
     {
@@ -489,6 +491,12 @@ public sealed class MainWindowViewModel : ObservableObject
         MainWindowOperationResult result,
         string title = "エラー")
     {
+        if (result.Exception is not null)
+        {
+            OperationFailed?.Invoke(this, result);
+            return;
+        }
+
         if (!string.IsNullOrWhiteSpace(result.UserMessage))
         {
             RequestMessage(result.UserMessage, title, UserMessageKind.Warning);
@@ -513,6 +521,7 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(PriceRows));
         OnPropertyChanged(nameof(SignalRows));
         OnPropertyChanged(nameof(BacktestSummary));
+        OnPropertyChanged(nameof(HasBacktestSummary));
         OnPropertyChanged(nameof(BacktestScoreBandSummaryRows));
         OnPropertyChanged(nameof(BacktestRows));
         OnPropertyChanged(nameof(CanRefreshBacktest));

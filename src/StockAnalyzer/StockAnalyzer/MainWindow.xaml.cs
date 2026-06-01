@@ -25,6 +25,9 @@ namespace StockAnalyzer
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = _viewModel;
+            _viewModel.MessageRequested += ViewModel_MessageRequested;
+            _viewModel.OperationFailed += ViewModel_OperationFailed;
             InitializeBacktestSettingsInputs();
             InitializeSymbolHistory();
             ApplyViewModelState();
@@ -285,6 +288,31 @@ namespace StockAnalyzer
                 ShowFriendlyError(result.Exception, result.Stderr, result.ExitCode);
                 return;
             }
+        }
+
+        private void ViewModel_MessageRequested(object? sender, UserMessageRequestedEventArgs e)
+        {
+            MessageBox.Show(
+                e.Message,
+                e.Title,
+                MessageBoxButton.OK,
+                ToMessageBoxImage(e.Kind));
+        }
+
+        private void ViewModel_OperationFailed(object? sender, MainWindowOperationResult e)
+        {
+            ShowOperationFailure(e);
+        }
+
+        private static MessageBoxImage ToMessageBoxImage(UserMessageKind kind)
+        {
+            return kind switch
+            {
+                UserMessageKind.Information => MessageBoxImage.Information,
+                UserMessageKind.Warning => MessageBoxImage.Warning,
+                UserMessageKind.Error => MessageBoxImage.Error,
+                _ => MessageBoxImage.None
+            };
         }
 
         private void ShowFriendlyError(Exception ex, string? stderr = null, int? exitCode = null)
