@@ -9,3 +9,7 @@
   - 影響範囲
   - 確認内容
   - 未確認事項がある場合はその理由
+
+## Environment
+
+- Use `/usr/local/share/dotnet/dotnet` when running .NET commands in this project.
