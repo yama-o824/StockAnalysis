@@ -37,4 +37,15 @@ public sealed class MainWindowViewModelTests
         Assert.False(viewModel.IsFetching);
         Assert.Equal("取得失敗", viewModel.StatusText);
     }
+
+    [Fact(DisplayName = "分析結果がない場合は履歴保存できない")]
+    public void SaveAnalysisHistory_WithoutAnalysisResult_ReturnsFailure()
+    {
+        var viewModel = new MainWindowViewModel();
+
+        var result = viewModel.SaveAnalysisHistory();
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("先に価格データを取得してください。", result.UserMessage);
+    }
 }

@@ -179,4 +179,45 @@ public sealed class MainWindowViewModel
                 exception: ex);
         }
     }
+
+    public MainWindowOperationResult SaveAnalysisHistory()
+    {
+        if (CurrentAnalysisResult is null)
+        {
+            return MainWindowOperationResult.Failure(
+                StatusText,
+                userMessage: "先に価格データを取得してください。");
+        }
+
+        var records = _analysisHistoryRecordFactory.Create(
+            CurrentSymbol,
+            CurrentRequestedPeriod,
+            DateTimeOffset.Now,
+            Guid.NewGuid().ToString("N"),
+            CurrentAnalysisResult);
+
+        if (records.Count == 0)
+        {
+            return MainWindowOperationResult.Failure(
+                StatusText,
+                userMessage: "保存対象のシグナルがありません。");
+        }
+
+        try
+        {
+            _analysisHistoryCsvStore.Append(records);
+            StatusText = $"分析結果を保存しました: {records.Count}件";
+
+            return MainWindowOperationResult.Success(
+                StatusText,
+                $"分析結果を保存しました。\n\n保存先: {_analysisHistoryCsvStore.FilePath}");
+        }
+        catch (Exception ex)
+        {
+            return MainWindowOperationResult.Failure(
+                StatusText,
+                userMessage: $"保存に失敗しました。\n\n--- 詳細 ---\n{ex.Message}",
+                exception: ex);
+        }
+    }
 }
