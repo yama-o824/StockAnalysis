@@ -2,6 +2,7 @@ using StockAnalyzer.Services;
 using StockAnalyzer.Services.Backtest;
 using StockAnalyzer.Models.Analysis;
 using StockAnalyzer.Presentation;
+using StockAnalyzer.Models.Backtest;
 
 namespace StockAnalyzer.ViewModels;
 
@@ -82,5 +83,63 @@ public sealed class MainWindowViewModel
     {
         IsFetching = false;
         StatusText = statusText;
+    }
+
+    public async Task<MainWindowOperationResult> FetchAsync(
+        string symbol,
+        string requestedPeriod,
+        ScoreFilterOption scoreFilterOption)
+    {
+        BeginFetch();
+
+        try
+        {
+            var fetchResult = await _priceDataFetchService.FetchAsync(symbol, requestedPeriod);
+            var analysisResult = _stockAnalysisService.Analyze(fetchResult.PriceBars);
+
+            CurrentAnalysisResult = analysisResult;
+            CurrentSymbol = symbol;
+            CurrentRequestedPeriod = requestedPeriod;
+            PriceRows = analysisResult.Bars
+                .Select(PriceAnalysisRow.From)
+                .ToList();
+
+            RefreshSignals(scoreFilterOption);
+            EndFetch($"取得完了: {fetchResult.Rows.Count}件");
+
+            return MainWindowOperationResult.Success(StatusText);
+        }
+        catch (PriceDataFetchException ex)
+        {
+            ResetResults();
+            EndFetch("取得失敗");
+            return MainWindowOperationResult.Failure(
+                StatusText,
+                exception: ex,
+                stderr: ex.Stderr,
+                exitCode: ex.ExitCode);
+        }
+        catch (Exception ex)
+        {
+            ResetResults();
+            EndFetch("取得失敗");
+            return MainWindowOperationResult.Failure(
+                StatusText,
+                exception: ex);
+        }
+    }
+
+    public void RefreshSignals(ScoreFilterOption scoreFilterOption)
+    {
+        if (CurrentAnalysisResult is null)
+        {
+            SignalRows = [];
+            return;
+        }
+
+        SignalRows = CurrentAnalysisResult.Signals
+            .Where(x => ScoreFilter.Matches(x.Score?.Total, scoreFilterOption.MinimumScore))
+            .Select(SignalViewRow.From)
+            .ToList();
     }
 }
