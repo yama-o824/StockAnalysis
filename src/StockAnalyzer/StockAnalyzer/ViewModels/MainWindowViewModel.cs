@@ -3,10 +3,11 @@ using StockAnalyzer.Services.Backtest;
 using StockAnalyzer.Models.Analysis;
 using StockAnalyzer.Presentation;
 using StockAnalyzer.Models.Backtest;
+using StockAnalyzer.Models;
 
 namespace StockAnalyzer.ViewModels;
 
-public sealed class MainWindowViewModel
+public sealed class MainWindowViewModel : ObservableObject
 {
     private readonly StockAnalysisService _stockAnalysisService;
     private readonly PriceDataFetchService _priceDataFetchService;
@@ -14,6 +15,7 @@ public sealed class MainWindowViewModel
     private readonly BacktestScoreBandSummaryAggregator _backtestScoreBandSummaryAggregator;
     private readonly AnalysisHistoryRecordFactory _analysisHistoryRecordFactory;
     private readonly AnalysisHistoryCsvStore _analysisHistoryCsvStore;
+    private readonly SymbolHistoryStore _symbolHistoryStore;
 
     public MainWindowViewModel()
         : this(
@@ -22,7 +24,8 @@ public sealed class MainWindowViewModel
             new BacktestRunner(),
             new BacktestScoreBandSummaryAggregator(),
             new AnalysisHistoryRecordFactory(),
-            new AnalysisHistoryCsvStore())
+            new AnalysisHistoryCsvStore(),
+            new SymbolHistoryStore())
     {
     }
 
@@ -32,7 +35,8 @@ public sealed class MainWindowViewModel
         BacktestRunner backtestRunner,
         BacktestScoreBandSummaryAggregator backtestScoreBandSummaryAggregator,
         AnalysisHistoryRecordFactory analysisHistoryRecordFactory,
-        AnalysisHistoryCsvStore analysisHistoryCsvStore)
+        AnalysisHistoryCsvStore analysisHistoryCsvStore,
+        SymbolHistoryStore symbolHistoryStore)
     {
         _stockAnalysisService = stockAnalysisService;
         _priceDataFetchService = priceDataFetchService;
@@ -40,8 +44,98 @@ public sealed class MainWindowViewModel
         _backtestScoreBandSummaryAggregator = backtestScoreBandSummaryAggregator;
         _analysisHistoryRecordFactory = analysisHistoryRecordFactory;
         _analysisHistoryCsvStore = analysisHistoryCsvStore;
+        _symbolHistoryStore = symbolHistoryStore;
+        SignalTypeOptions =
+        [
+            new(SignalType.Buy, "買い"),
+            new(SignalType.Sell, "売り")
+        ];
+        AvailablePeriodOptions = Presentation.PeriodOptions.All;
+        AvailableScoreFilterOptions = Presentation.ScoreFilterOptions.All;
+        _selectedPeriod = AvailablePeriodOptions.First(x => x.Value == Presentation.PeriodOptions.DefaultValue);
+        _selectedScoreFilter = AvailableScoreFilterOptions.First(x => x.MinimumScore is null);
+        _selectedSignalType = SignalTypeOptions.First(x => x.Value == SignalType.Buy);
+        FetchCommand = new AsyncRelayCommand(FetchFromInputAsync, () => !IsFetching);
+        RefreshBacktestCommand = new RelayCommand(RefreshBacktestFromInput, () => CanRefreshBacktest);
+        SaveAnalysisHistoryCommand = new RelayCommand(SaveAnalysisHistoryFromInput, () => CanSaveAnalysisHistory);
     }
 
+    private string _symbolText = string.Empty;
+    private PeriodOption? _selectedPeriod;
+    private SignalTypeOption? _selectedSignalType;
+    private ScoreFilterOption? _selectedScoreFilter;
+    private string _entryDelayText = "1";
+    private string _holdingBarsText = "5";
+    private IReadOnlyList<string> _symbolHistory = [];
+
+    public IReadOnlyList<PeriodOption> AvailablePeriodOptions { get; }
+    public IReadOnlyList<SignalTypeOption> SignalTypeOptions { get; }
+    public IReadOnlyList<ScoreFilterOption> AvailableScoreFilterOptions { get; }
+    public string SymbolText
+    {
+        get => _symbolText;
+        set
+        {
+            if (SetProperty(ref _symbolText, value))
+            {
+                FetchCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+    public PeriodOption? SelectedPeriod
+    {
+        get => _selectedPeriod;
+        set
+        {
+            if (SetProperty(ref _selectedPeriod, value))
+            {
+                FetchCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+    public SignalTypeOption? SelectedSignalType
+    {
+        get => _selectedSignalType;
+        set
+        {
+            if (SetProperty(ref _selectedSignalType, value))
+            {
+                RefreshBacktestCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+    public ScoreFilterOption? SelectedScoreFilter
+    {
+        get => _selectedScoreFilter;
+        set
+        {
+            if (SetProperty(ref _selectedScoreFilter, value))
+            {
+                RefreshSignals(GetSelectedScoreFilterOption());
+                if (CurrentAnalysisResult is not null && TryCreateBacktestSettings(out var backtestSettings, notifyOnError: false))
+                {
+                    RefreshBacktest(backtestSettings, GetSelectedScoreFilterOption(), StatusText);
+                }
+
+                RaiseStateChanged();
+            }
+        }
+    }
+    public string EntryDelayText
+    {
+        get => _entryDelayText;
+        set => SetProperty(ref _entryDelayText, value);
+    }
+    public string HoldingBarsText
+    {
+        get => _holdingBarsText;
+        set => SetProperty(ref _holdingBarsText, value);
+    }
+    public IReadOnlyList<string> SymbolHistory
+    {
+        get => _symbolHistory;
+        private set => SetProperty(ref _symbolHistory, value);
+    }
     public AnalysisResult? CurrentAnalysisResult { get; private set; }
     public string CurrentSymbol { get; private set; } = string.Empty;
     public string CurrentRequestedPeriod { get; private set; } = string.Empty;
@@ -54,12 +148,31 @@ public sealed class MainWindowViewModel
     public IReadOnlyList<BacktestViewRow> BacktestRows { get; private set; } = [];
     public bool CanRefreshBacktest => !IsFetching && CurrentAnalysisResult is not null;
     public bool CanSaveAnalysisHistory => !IsFetching && CurrentAnalysisResult is not null;
+    public bool HasBacktestSummary => BacktestSummary is not null;
+    public AsyncRelayCommand FetchCommand { get; }
+    public RelayCommand RefreshBacktestCommand { get; }
+    public RelayCommand SaveAnalysisHistoryCommand { get; }
+    public event EventHandler<UserMessageRequestedEventArgs>? MessageRequested;
+    public event EventHandler<MainWindowOperationResult>? OperationFailed;
+
+    public void LoadSymbolHistory()
+    {
+        try
+        {
+            SymbolHistory = _symbolHistoryStore.Load();
+        }
+        catch
+        {
+            SymbolHistory = [];
+        }
+    }
 
     public void BeginFetch()
     {
         ResetResults();
         IsFetching = true;
         StatusText = "取得中...";
+        RaiseStateChanged();
     }
 
     public void ResetResults()
@@ -72,17 +185,20 @@ public sealed class MainWindowViewModel
         BacktestSummary = null;
         BacktestScoreBandSummaryRows = [];
         BacktestRows = [];
+        RaiseStateChanged();
     }
 
     public void SetStatus(string statusText)
     {
         StatusText = statusText;
+        OnPropertyChanged(nameof(StatusText));
     }
 
     public void EndFetch(string statusText)
     {
         IsFetching = false;
         StatusText = statusText;
+        RaiseStateChanged();
     }
 
     public async Task<MainWindowOperationResult> FetchAsync(
@@ -169,6 +285,7 @@ public sealed class MainWindowViewModel
                 .Select(BacktestViewRow.From)
                 .ToList();
             StatusText = successStatusMessage;
+            RaiseStateChanged();
 
             return MainWindowOperationResult.Success(StatusText);
         }
@@ -207,6 +324,7 @@ public sealed class MainWindowViewModel
         {
             _analysisHistoryCsvStore.Append(records);
             StatusText = $"分析結果を保存しました: {records.Count}件";
+            OnPropertyChanged(nameof(StatusText));
 
             return MainWindowOperationResult.Success(
                 StatusText,
@@ -219,5 +337,199 @@ public sealed class MainWindowViewModel
                 userMessage: $"保存に失敗しました。\n\n--- 詳細 ---\n{ex.Message}",
                 exception: ex);
         }
+    }
+
+    private async Task FetchFromInputAsync()
+    {
+        var symbol = Services.SymbolHistory.Normalize(SymbolText);
+        if (string.IsNullOrWhiteSpace(symbol))
+        {
+            RequestMessage("銘柄を入力してください", "エラー", UserMessageKind.Warning);
+            return;
+        }
+
+        SymbolText = symbol;
+
+        if (SelectedPeriod is null)
+        {
+            RequestMessage("取得期間を選択してください。", "エラー", UserMessageKind.Warning);
+            return;
+        }
+
+        if (!TryCreateBacktestSettings(out var backtestSettings))
+        {
+            return;
+        }
+
+        var scoreFilterOption = GetSelectedScoreFilterOption();
+        var result = await FetchAsync(symbol, SelectedPeriod.Value, scoreFilterOption);
+
+        if (!result.Succeeded)
+        {
+            RequestFailureMessage(result);
+            return;
+        }
+
+        var backtestResult = RefreshBacktest(
+            backtestSettings,
+            scoreFilterOption,
+            StatusText);
+
+        if (!backtestResult.Succeeded)
+        {
+            RequestFailureMessage(backtestResult);
+            return;
+        }
+
+        UpdateSymbolHistory(symbol);
+    }
+
+    private void RefreshBacktestFromInput()
+    {
+        if (!TryCreateBacktestSettings(out var backtestSettings))
+        {
+            return;
+        }
+
+        var result = RefreshBacktest(
+            backtestSettings,
+            GetSelectedScoreFilterOption());
+
+        if (!result.Succeeded)
+        {
+            RequestFailureMessage(result);
+        }
+    }
+
+    private void SaveAnalysisHistoryFromInput()
+    {
+        var result = SaveAnalysisHistory();
+
+        if (!result.Succeeded)
+        {
+            RequestFailureMessage(result, "保存エラー");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.UserMessage))
+        {
+            RequestMessage(result.UserMessage, "保存完了", UserMessageKind.Information);
+        }
+    }
+
+    private void UpdateSymbolHistory(string symbol)
+    {
+        try
+        {
+            SymbolHistory = _symbolHistoryStore.Add(symbol);
+            SymbolText = symbol;
+        }
+        catch
+        {
+            // 履歴保存に失敗しても、取得済みの分析結果表示は成功扱いにする。
+        }
+    }
+
+    private bool TryCreateBacktestSettings(
+        out BacktestSettings settings,
+        bool notifyOnError = true)
+    {
+        settings = default!;
+
+        if (SelectedSignalType is null)
+        {
+            if (notifyOnError)
+            {
+                RequestMessage("対象シグナルを選択してください。", "エラー", UserMessageKind.Warning);
+            }
+            return false;
+        }
+
+        if (!TryParsePositiveInt(EntryDelayText, "エントリーまでの営業日数", out var entryDelayBars, notifyOnError))
+        {
+            return false;
+        }
+
+        if (!TryParsePositiveInt(HoldingBarsText, "保有営業日数", out var exitAfterBars, notifyOnError))
+        {
+            return false;
+        }
+
+        settings = new BacktestSettings
+        {
+            TargetSignalType = SelectedSignalType.Value,
+            EntryDelayBars = entryDelayBars,
+            ExitAfterBars = exitAfterBars
+        };
+
+        return true;
+    }
+
+    private bool TryParsePositiveInt(
+        string? text,
+        string label,
+        out int value,
+        bool notifyOnError = true)
+    {
+        if (!int.TryParse(text, out value) || value < 1)
+        {
+            if (notifyOnError)
+            {
+                RequestMessage($"{label}は1以上の整数で入力してください。", "エラー", UserMessageKind.Warning);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    private ScoreFilterOption GetSelectedScoreFilterOption()
+    {
+        return SelectedScoreFilter
+            ?? AvailableScoreFilterOptions.First(x => x.MinimumScore is null);
+    }
+
+    private void RequestFailureMessage(
+        MainWindowOperationResult result,
+        string title = "エラー")
+    {
+        if (result.Exception is not null)
+        {
+            OperationFailed?.Invoke(this, result);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.UserMessage))
+        {
+            RequestMessage(result.UserMessage, title, UserMessageKind.Warning);
+        }
+    }
+
+    private void RequestMessage(
+        string message,
+        string title,
+        UserMessageKind kind)
+    {
+        MessageRequested?.Invoke(this, new UserMessageRequestedEventArgs(message, title, kind));
+    }
+
+    private void RaiseStateChanged()
+    {
+        OnPropertyChanged(nameof(CurrentAnalysisResult));
+        OnPropertyChanged(nameof(CurrentSymbol));
+        OnPropertyChanged(nameof(CurrentRequestedPeriod));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(IsFetching));
+        OnPropertyChanged(nameof(PriceRows));
+        OnPropertyChanged(nameof(SignalRows));
+        OnPropertyChanged(nameof(BacktestSummary));
+        OnPropertyChanged(nameof(HasBacktestSummary));
+        OnPropertyChanged(nameof(BacktestScoreBandSummaryRows));
+        OnPropertyChanged(nameof(BacktestRows));
+        OnPropertyChanged(nameof(CanRefreshBacktest));
+        OnPropertyChanged(nameof(CanSaveAnalysisHistory));
+        RefreshBacktestCommand.RaiseCanExecuteChanged();
+        SaveAnalysisHistoryCommand.RaiseCanExecuteChanged();
+        FetchCommand.RaiseCanExecuteChanged();
     }
 }

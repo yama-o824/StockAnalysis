@@ -1,4 +1,5 @@
 using StockAnalyzer.ViewModels;
+using StockAnalyzer.Models;
 using Xunit;
 
 namespace StockAnalyzer.Tests;
@@ -26,6 +27,21 @@ public sealed class MainWindowViewModelTests
         Assert.False(viewModel.CanSaveAnalysisHistory);
     }
 
+    [Fact(DisplayName = "初期表示用の選択肢と入力値を保持する")]
+    public void Constructor_InitializesInputState()
+    {
+        var viewModel = new MainWindowViewModel();
+
+        Assert.Equal("1", viewModel.EntryDelayText);
+        Assert.Equal("5", viewModel.HoldingBarsText);
+        Assert.NotEmpty(viewModel.AvailablePeriodOptions);
+        Assert.NotEmpty(viewModel.AvailableScoreFilterOptions);
+        Assert.NotEmpty(viewModel.SignalTypeOptions);
+        Assert.Equal("1y", viewModel.SelectedPeriod?.Value);
+        Assert.Null(viewModel.SelectedScoreFilter?.MinimumScore);
+        Assert.Equal(SignalType.Buy, viewModel.SelectedSignalType?.Value);
+    }
+
     [Fact(DisplayName = "取得終了時は取得中状態を解除してステータスを更新する")]
     public void EndFetch_ClearsFetchingStateAndUpdatesStatus()
     {
@@ -47,5 +63,20 @@ public sealed class MainWindowViewModelTests
 
         Assert.False(result.Succeeded);
         Assert.Equal("先に価格データを取得してください。", result.UserMessage);
+    }
+
+    [Fact(DisplayName = "保存コマンドは保存対象がない場合にメッセージを通知する")]
+    public void SaveAnalysisHistoryCommand_WithoutAnalysisResult_RequestsMessage()
+    {
+        var viewModel = new MainWindowViewModel();
+        UserMessageRequestedEventArgs? message = null;
+        viewModel.MessageRequested += (_, e) => message = e;
+
+        viewModel.SaveAnalysisHistoryCommand.Execute(null);
+
+        Assert.NotNull(message);
+        Assert.Equal("先に価格データを取得してください。", message.Message);
+        Assert.Equal("保存エラー", message.Title);
+        Assert.Equal(UserMessageKind.Warning, message.Kind);
     }
 }

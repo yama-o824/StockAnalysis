@@ -4,9 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StockAnalyzer"
+        xmlns:converters="clr-namespace:StockAnalyzer.Converters"
         mc:Ignorable="d"
         Title="Stock Analyzer" Height="560" Width="980">
     <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" Invert="True"/>
+        <converters:BoolNegationConverter x:Key="BoolNegation"/>
         <Style x:Key="NumericCellStyle" TargetType="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Right"/>
         </Style>
@@ -21,46 +25,58 @@
                 <ComboBox x:Name="SymbolComboBox"
                           IsEditable="True"
                           IsTextSearchEnabled="True"
+                          ItemsSource="{Binding SymbolHistory}"
+                          Text="{Binding SymbolText, UpdateSourceTrigger=PropertyChanged}"
+                          IsEnabled="{Binding IsFetching, Converter={StaticResource BoolNegation}}"
                           Width="180"
                           Height="24"/>
                 <Label Content="期間" Margin="12,0,0,0" VerticalAlignment="Center"/>
                 <ComboBox x:Name="PeriodComboBox"
+                          ItemsSource="{Binding AvailablePeriodOptions}"
                           DisplayMemberPath="Label"
+                          SelectedItem="{Binding SelectedPeriod}"
+                          IsEnabled="{Binding IsFetching, Converter={StaticResource BoolNegation}}"
                           Width="90"
                           Height="24"/>
-                <Button x:Name="FetchButton" Content="取得" Click="FetchButton_Click" Width="64" Height="24" Margin="10,0,0,0"/>
-                <Button x:Name="SaveAnalysisHistoryButton" Content="保存" Click="SaveAnalysisHistoryButton_Click" Width="64" Height="24" Margin="8,0,0,0"/>
-                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="14,0,0,0"/>
+                <Button x:Name="FetchButton" Content="取得" Command="{Binding FetchCommand}" Width="64" Height="24" Margin="10,0,0,0"/>
+                <Button x:Name="SaveAnalysisHistoryButton" Content="保存" Command="{Binding SaveAnalysisHistoryCommand}" Width="64" Height="24" Margin="8,0,0,0"/>
+                <TextBlock x:Name="StatusText" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="14,0,0,0"/>
                 <ProgressBar x:Name="LoadingBar"
                      Width="120"
                      Height="14"
                      Margin="12,0,0,0"
                      IsIndeterminate="True"
-                     Visibility="Collapsed"/>
+                     Visibility="{Binding IsFetching, Converter={StaticResource BoolToVisibility}}"/>
             </StackPanel>
             <WrapPanel Margin="0,8,0,0" VerticalAlignment="Center">
                 <Label Content="対象シグナル" VerticalAlignment="Center"/>
                 <ComboBox x:Name="SignalTypeComboBox"
+                          ItemsSource="{Binding SignalTypeOptions}"
                           DisplayMemberPath="Label"
+                          SelectedItem="{Binding SelectedSignalType}"
+                          IsEnabled="{Binding IsFetching, Converter={StaticResource BoolNegation}}"
                           Width="100"
                           Height="24"/>
                 <Label Content="最小スコア" Margin="12,0,0,0" VerticalAlignment="Center"/>
                 <ComboBox x:Name="ScoreFilterComboBox"
+                          ItemsSource="{Binding AvailableScoreFilterOptions}"
                           DisplayMemberPath="Label"
-                          SelectionChanged="ScoreFilterComboBox_SelectionChanged"
+                          SelectedItem="{Binding SelectedScoreFilter}"
                           Width="90"
                           Height="24"/>
                 <Label Content="エントリーまでの営業日数" Margin="12,0,0,0" VerticalAlignment="Center"/>
                 <TextBox x:Name="EntryDelayTextBox"
                          Width="48"
                          Height="24"
-                         Text="1"/>
+                         IsEnabled="{Binding IsFetching, Converter={StaticResource BoolNegation}}"
+                         Text="{Binding EntryDelayText, UpdateSourceTrigger=PropertyChanged}"/>
                 <Label Content="保有営業日数" Margin="12,0,0,0" VerticalAlignment="Center"/>
                 <TextBox x:Name="HoldingBarsTextBox"
                          Width="48"
                          Height="24"
-                         Text="5"/>
-                <Button x:Name="RefreshBacktestButton" Content="バックテスト更新" Click="RefreshBacktestButton_Click" Width="116" Height="24" Margin="12,0,0,0"/>
+                         IsEnabled="{Binding IsFetching, Converter={StaticResource BoolNegation}}"
+                         Text="{Binding HoldingBarsText, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button x:Name="RefreshBacktestButton" Content="バックテスト更新" Command="{Binding RefreshBacktestCommand}" Width="116" Height="24" Margin="12,0,0,0"/>
             </WrapPanel>
         </StackPanel>
         <ScrollViewer>
@@ -69,6 +85,7 @@
                 <TextBlock x:Name="BacktestPlaceholderText"
                            Margin="0,0,0,8"
                            Foreground="#586069"
+                           Visibility="{Binding HasBacktestSummary, Converter={StaticResource InverseBoolToVisibility}}"
                            Text="価格データを取得すると、バックテスト結果を表示します。"/>
                 <Border x:Name="BacktestSummaryPanel"
                         Margin="0,0,0,8"
@@ -76,8 +93,8 @@
                         BorderBrush="#D0D7DE"
                         BorderThickness="1"
                         CornerRadius="6"
-                        Visibility="Collapsed">
-                    <Grid>
+                        Visibility="{Binding HasBacktestSummary, Converter={StaticResource BoolToVisibility}}">
+                    <Grid DataContext="{Binding BacktestSummary}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -126,15 +143,16 @@
                            Text="スコア別集計"
                            Margin="0,8,0,4"
                            FontWeight="Bold"
-                           Visibility="Collapsed"/>
+                           Visibility="{Binding HasBacktestSummary, Converter={StaticResource BoolToVisibility}}"/>
                 <DataGrid x:Name="BacktestScoreBandSummaryDataGrid"
+                          ItemsSource="{Binding BacktestScoreBandSummaryRows}"
                           Margin="0,0,0,8"
                           IsReadOnly="True"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
                           CanUserReorderColumns="False"
-                          Visibility="Collapsed">
+                          Visibility="{Binding HasBacktestSummary, Converter={StaticResource BoolToVisibility}}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="スコア帯"
                                             Binding="{Binding ScoreBand}"
@@ -162,12 +180,13 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <DataGrid x:Name="BacktestDataGrid"
+                          ItemsSource="{Binding BacktestRows}"
                           IsReadOnly="True"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
                           CanUserReorderColumns="False"
-                          Visibility="Collapsed">
+                          Visibility="{Binding HasBacktestSummary, Converter={StaticResource BoolToVisibility}}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="シグナル日"
                                             Binding="{Binding SignalDate}"
@@ -216,6 +235,7 @@
                 </DataGrid>
                 <TextBlock Text="シグナル一覧" Margin="0,16,0,4" FontWeight="Bold"/>
                 <DataGrid x:Name="SignalsDataGrid"
+                          ItemsSource="{Binding SignalRows}"
                           IsReadOnly="True"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -294,6 +314,7 @@
                           Margin="0,16,0,0"
                           IsExpanded="False">
                     <DataGrid Name="PricesDataGrid"
+                              ItemsSource="{Binding PriceRows}"
                               Margin="0,10,0,0"
                               IsReadOnly="True"
                               AutoGenerateColumns="False"

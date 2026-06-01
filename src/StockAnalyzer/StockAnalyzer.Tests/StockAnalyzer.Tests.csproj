@@ -45,6 +45,7 @@
     <Compile Include="..\StockAnalyzer\Presentation\BacktestViewRow.cs" Link="Source\Presentation\BacktestViewRow.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\PriceAnalysisRow.cs" Link="Source\Presentation\PriceAnalysisRow.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\SignalViewRow.cs" Link="Source\Presentation\SignalViewRow.cs" />
+    <Compile Include="..\StockAnalyzer\Presentation\SignalTypeOption.cs" Link="Source\Presentation\SignalTypeOption.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\SignalScoreTextFormatter.cs" Link="Source\Presentation\SignalScoreTextFormatter.cs" />
     <Compile Include="..\StockAnalyzer\Mappers\PriceBarMapper.cs" Link="Source\Mappers\PriceBarMapper.cs" />
     <Compile Include="..\StockAnalyzer\Services\SymbolHistory.cs" Link="Source\Services\SymbolHistory.cs" />
@@ -77,6 +78,11 @@
     <Compile Include="..\StockAnalyzer\Services\Backtest\BacktestScoreBandSummaryAggregator.cs" Link="Source\Services\Backtest\BacktestScoreBandSummaryAggregator.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\MainWindowOperationResult.cs" Link="Source\ViewModels\MainWindowOperationResult.cs" />
     <Compile Include="..\StockAnalyzer\ViewModels\MainWindowViewModel.cs" Link="Source\ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\ObservableObject.cs" Link="Source\ViewModels\ObservableObject.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\RelayCommand.cs" Link="Source\ViewModels\RelayCommand.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\AsyncRelayCommand.cs" Link="Source\ViewModels\AsyncRelayCommand.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\UserMessageKind.cs" Link="Source\ViewModels\UserMessageKind.cs" />
+    <Compile Include="..\StockAnalyzer\ViewModels\UserMessageRequestedEventArgs.cs" Link="Source\ViewModels\UserMessageRequestedEventArgs.cs" />
   </ItemGroup>
 
 </Project>
