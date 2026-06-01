@@ -1,4 +1,5 @@
 using StockAnalyzer.ViewModels;
+using StockAnalyzer.Models;
 using Xunit;
 
 namespace StockAnalyzer.Tests;
@@ -24,6 +25,21 @@ public sealed class MainWindowViewModelTests
         Assert.Empty(viewModel.BacktestRows);
         Assert.False(viewModel.CanRefreshBacktest);
         Assert.False(viewModel.CanSaveAnalysisHistory);
+    }
+
+    [Fact(DisplayName = "初期表示用の選択肢と入力値を保持する")]
+    public void Constructor_InitializesInputState()
+    {
+        var viewModel = new MainWindowViewModel();
+
+        Assert.Equal("1", viewModel.EntryDelayText);
+        Assert.Equal("5", viewModel.HoldingBarsText);
+        Assert.NotEmpty(viewModel.AvailablePeriodOptions);
+        Assert.NotEmpty(viewModel.AvailableScoreFilterOptions);
+        Assert.NotEmpty(viewModel.SignalTypeOptions);
+        Assert.Equal("1y", viewModel.SelectedPeriod?.Value);
+        Assert.Null(viewModel.SelectedScoreFilter?.MinimumScore);
+        Assert.Equal(SignalType.Buy, viewModel.SelectedSignalType?.Value);
     }
 
     [Fact(DisplayName = "取得終了時は取得中状態を解除してステータスを更新する")]

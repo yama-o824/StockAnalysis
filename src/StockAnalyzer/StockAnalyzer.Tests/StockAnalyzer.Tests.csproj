@@ -45,6 +45,7 @@
     <Compile Include="..\StockAnalyzer\Presentation\BacktestViewRow.cs" Link="Source\Presentation\BacktestViewRow.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\PriceAnalysisRow.cs" Link="Source\Presentation\PriceAnalysisRow.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\SignalViewRow.cs" Link="Source\Presentation\SignalViewRow.cs" />
+    <Compile Include="..\StockAnalyzer\Presentation\SignalTypeOption.cs" Link="Source\Presentation\SignalTypeOption.cs" />
     <Compile Include="..\StockAnalyzer\Presentation\SignalScoreTextFormatter.cs" Link="Source\Presentation\SignalScoreTextFormatter.cs" />
     <Compile Include="..\StockAnalyzer\Mappers\PriceBarMapper.cs" Link="Source\Mappers\PriceBarMapper.cs" />
     <Compile Include="..\StockAnalyzer\Services\SymbolHistory.cs" Link="Source\Services\SymbolHistory.cs" />

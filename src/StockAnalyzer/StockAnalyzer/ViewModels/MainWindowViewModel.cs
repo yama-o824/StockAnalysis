@@ -3,10 +3,11 @@ using StockAnalyzer.Services.Backtest;
 using StockAnalyzer.Models.Analysis;
 using StockAnalyzer.Presentation;
 using StockAnalyzer.Models.Backtest;
+using StockAnalyzer.Models;
 
 namespace StockAnalyzer.ViewModels;
 
-public sealed class MainWindowViewModel
+public sealed class MainWindowViewModel : ObservableObject
 {
     private readonly StockAnalysisService _stockAnalysisService;
     private readonly PriceDataFetchService _priceDataFetchService;
@@ -40,8 +41,58 @@ public sealed class MainWindowViewModel
         _backtestScoreBandSummaryAggregator = backtestScoreBandSummaryAggregator;
         _analysisHistoryRecordFactory = analysisHistoryRecordFactory;
         _analysisHistoryCsvStore = analysisHistoryCsvStore;
+        SignalTypeOptions =
+        [
+            new(SignalType.Buy, "買い"),
+            new(SignalType.Sell, "売り")
+        ];
+        AvailablePeriodOptions = Presentation.PeriodOptions.All;
+        AvailableScoreFilterOptions = Presentation.ScoreFilterOptions.All;
+        _selectedPeriod = AvailablePeriodOptions.First(x => x.Value == Presentation.PeriodOptions.DefaultValue);
+        _selectedScoreFilter = AvailableScoreFilterOptions.First(x => x.MinimumScore is null);
+        _selectedSignalType = SignalTypeOptions.First(x => x.Value == SignalType.Buy);
     }
 
+    private string _symbolText = string.Empty;
+    private PeriodOption? _selectedPeriod;
+    private SignalTypeOption? _selectedSignalType;
+    private ScoreFilterOption? _selectedScoreFilter;
+    private string _entryDelayText = "1";
+    private string _holdingBarsText = "5";
+
+    public IReadOnlyList<PeriodOption> AvailablePeriodOptions { get; }
+    public IReadOnlyList<SignalTypeOption> SignalTypeOptions { get; }
+    public IReadOnlyList<ScoreFilterOption> AvailableScoreFilterOptions { get; }
+    public string SymbolText
+    {
+        get => _symbolText;
+        set => SetProperty(ref _symbolText, value);
+    }
+    public PeriodOption? SelectedPeriod
+    {
+        get => _selectedPeriod;
+        set => SetProperty(ref _selectedPeriod, value);
+    }
+    public SignalTypeOption? SelectedSignalType
+    {
+        get => _selectedSignalType;
+        set => SetProperty(ref _selectedSignalType, value);
+    }
+    public ScoreFilterOption? SelectedScoreFilter
+    {
+        get => _selectedScoreFilter;
+        set => SetProperty(ref _selectedScoreFilter, value);
+    }
+    public string EntryDelayText
+    {
+        get => _entryDelayText;
+        set => SetProperty(ref _entryDelayText, value);
+    }
+    public string HoldingBarsText
+    {
+        get => _holdingBarsText;
+        set => SetProperty(ref _holdingBarsText, value);
+    }
     public AnalysisResult? CurrentAnalysisResult { get; private set; }
     public string CurrentSymbol { get; private set; } = string.Empty;
     public string CurrentRequestedPeriod { get; private set; } = string.Empty;
