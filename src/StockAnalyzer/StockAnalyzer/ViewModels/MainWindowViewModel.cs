@@ -15,6 +15,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly BacktestScoreBandSummaryAggregator _backtestScoreBandSummaryAggregator;
     private readonly AnalysisHistoryRecordFactory _analysisHistoryRecordFactory;
     private readonly AnalysisHistoryCsvStore _analysisHistoryCsvStore;
+    private readonly SymbolHistoryStore _symbolHistoryStore;
 
     public MainWindowViewModel()
         : this(
@@ -23,7 +24,8 @@ public sealed class MainWindowViewModel : ObservableObject
             new BacktestRunner(),
             new BacktestScoreBandSummaryAggregator(),
             new AnalysisHistoryRecordFactory(),
-            new AnalysisHistoryCsvStore())
+            new AnalysisHistoryCsvStore(),
+            new SymbolHistoryStore())
     {
     }
 
@@ -33,7 +35,8 @@ public sealed class MainWindowViewModel : ObservableObject
         BacktestRunner backtestRunner,
         BacktestScoreBandSummaryAggregator backtestScoreBandSummaryAggregator,
         AnalysisHistoryRecordFactory analysisHistoryRecordFactory,
-        AnalysisHistoryCsvStore analysisHistoryCsvStore)
+        AnalysisHistoryCsvStore analysisHistoryCsvStore,
+        SymbolHistoryStore symbolHistoryStore)
     {
         _stockAnalysisService = stockAnalysisService;
         _priceDataFetchService = priceDataFetchService;
@@ -41,6 +44,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _backtestScoreBandSummaryAggregator = backtestScoreBandSummaryAggregator;
         _analysisHistoryRecordFactory = analysisHistoryRecordFactory;
         _analysisHistoryCsvStore = analysisHistoryCsvStore;
+        _symbolHistoryStore = symbolHistoryStore;
         SignalTypeOptions =
         [
             new(SignalType.Buy, "買い"),
@@ -62,6 +66,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private ScoreFilterOption? _selectedScoreFilter;
     private string _entryDelayText = "1";
     private string _holdingBarsText = "5";
+    private IReadOnlyList<string> _symbolHistory = [];
 
     public IReadOnlyList<PeriodOption> AvailablePeriodOptions { get; }
     public IReadOnlyList<SignalTypeOption> SignalTypeOptions { get; }
@@ -126,6 +131,11 @@ public sealed class MainWindowViewModel : ObservableObject
         get => _holdingBarsText;
         set => SetProperty(ref _holdingBarsText, value);
     }
+    public IReadOnlyList<string> SymbolHistory
+    {
+        get => _symbolHistory;
+        private set => SetProperty(ref _symbolHistory, value);
+    }
     public AnalysisResult? CurrentAnalysisResult { get; private set; }
     public string CurrentSymbol { get; private set; } = string.Empty;
     public string CurrentRequestedPeriod { get; private set; } = string.Empty;
@@ -142,6 +152,18 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand RefreshBacktestCommand { get; }
     public RelayCommand SaveAnalysisHistoryCommand { get; }
     public event EventHandler<UserMessageRequestedEventArgs>? MessageRequested;
+
+    public void LoadSymbolHistory()
+    {
+        try
+        {
+            SymbolHistory = _symbolHistoryStore.Load();
+        }
+        catch
+        {
+            SymbolHistory = [];
+        }
+    }
 
     public void BeginFetch()
     {
@@ -315,7 +337,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private async Task FetchFromInputAsync()
     {
-        var symbol = SymbolHistory.Normalize(SymbolText);
+        var symbol = Services.SymbolHistory.Normalize(SymbolText);
         if (string.IsNullOrWhiteSpace(symbol))
         {
             RequestMessage("銘柄を入力してください", "エラー", UserMessageKind.Warning);
@@ -352,7 +374,10 @@ public sealed class MainWindowViewModel : ObservableObject
         if (!backtestResult.Succeeded)
         {
             RequestFailureMessage(backtestResult);
+            return;
         }
+
+        UpdateSymbolHistory(symbol);
     }
 
     private void RefreshBacktestFromInput()
@@ -385,6 +410,19 @@ public sealed class MainWindowViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(result.UserMessage))
         {
             RequestMessage(result.UserMessage, "保存完了", UserMessageKind.Information);
+        }
+    }
+
+    private void UpdateSymbolHistory(string symbol)
+    {
+        try
+        {
+            SymbolHistory = _symbolHistoryStore.Add(symbol);
+            SymbolText = symbol;
+        }
+        catch
+        {
+            // 履歴保存に失敗しても、取得済みの分析結果表示は成功扱いにする。
         }
     }
 
