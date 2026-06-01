@@ -168,7 +168,7 @@ public static class AnalysisHistoryCsvFormat
     }
 
     private static TEnum ParseEnum<TEnum>(string value, string columnName)
-        where TEnum : struct
+        where TEnum : struct, Enum
     {
         if (Enum.TryParse<TEnum>(value, ignoreCase: false, out var parsed)
             && Enum.IsDefined(parsed))
@@ -180,7 +180,7 @@ public static class AnalysisHistoryCsvFormat
     }
 
     private static TEnum? ParseNullableEnum<TEnum>(string value, string columnName)
-        where TEnum : struct
+        where TEnum : struct, Enum
     {
         return string.IsNullOrEmpty(value)
             ? null
